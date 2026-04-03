@@ -4,6 +4,7 @@ interface Post {
   id: string;
   title?: string;
   content: string;
+  imageUrl?: string;
   userId: string;
   userName?: string;
   userAvatar?: string;

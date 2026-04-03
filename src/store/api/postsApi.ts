@@ -6,6 +6,7 @@ export interface Post {
   id: string;
   title?: string;
   content: string;
+  imageUrl?: string;
   userId: string;
   userName?: string;
   userAvatar?: string;
@@ -18,7 +19,7 @@ export interface Post {
 
 export interface CreatePostRequest {
   content: string;
-  title?: string;
+  imageFile: File;
 }
 
 export const postsApi = createApi({
@@ -53,11 +54,16 @@ export const postsApi = createApi({
     }),
 
     createPost: builder.mutation<Post, CreatePostRequest>({
-      query: (body) => ({
-        url: apiRoutes.post.create,
-        method: "POST",
-        body,
-      }),
+      query: ({ content, imageFile }) => {
+        const formData = new FormData();
+        formData.append("content", content);
+        formData.append("imageUrl", imageFile);
+        return {
+          url: apiRoutes.post.create,
+          method: "POST",
+          body: formData,
+        };
+      },
       invalidatesTags: ["Posts", "MyPosts"],
     }),
   }),
