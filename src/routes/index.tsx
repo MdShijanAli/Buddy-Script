@@ -9,7 +9,6 @@ import NoPageFound from "../views/NoPageFound";
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public */}
       <Route
         path="/login"
         element={
@@ -27,7 +26,6 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Private */}
       <Route
         path="/"
         element={

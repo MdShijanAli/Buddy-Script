@@ -850,6 +850,32 @@
     margin: 0 8px 0 0;
     width: 24px;
 }
+._header_nav_profile_image ._nav_profile_img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+._nav_profile_placeholder {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid var(--color5);
+    background: rgba(55, 125, 255, 0.12);
+    color: var(--color5);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    text-transform: uppercase;
+}
+._nav_profile_placeholder_large {
+    width: 54px;
+    height: 54px;
+    font-size: 20px;
+}
 ._header_nav_dropdown {
     cursor:pointer;
     display: -webkit-box;
