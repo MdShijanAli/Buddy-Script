@@ -7,6 +7,7 @@ import { useMultipleDropdowns } from "../hooks";
 import {
   postsApi,
   useGetAllPostsQuery,
+  useDeletePostMutation,
   type Post,
   type PostLike,
 } from "../store/api/postsApi";
@@ -50,12 +51,15 @@ export default function TimeLinePosts() {
       }
     >
   >({});
+  const [deletePostId, setDeletePostId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
   const [likePost] = useLikePostMutation();
   const [unlikePost] = useUnlikePostMutation();
   const [getPostLikes] = useLazyGetPostLikesQuery();
+  const [deletePost] = useDeletePostMutation();
 
   const { data: posts, isLoading, isError } = useGetAllPostsQuery();
 
@@ -204,6 +208,39 @@ export default function TimeLinePosts() {
   ) => {
     event.stopPropagation();
     toggleDropdown(`drop_${postId}`);
+  };
+
+  const handleDeleteClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    postId: string,
+  ) => {
+    event.preventDefault();
+    setDeletePostId(postId);
+    closeAllDropdowns();
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletePostId) return;
+
+    setIsDeleting(true);
+    try {
+      await deletePost(deletePostId).unwrap();
+      toast.success("Post deleted successfully");
+      setDeletePostId(null);
+    } catch (err: any) {
+      console.error("Failed to delete post:", err);
+      toast.error(
+        err?.data?.error?.message ||
+          err?.data?.message ||
+          "Failed to delete post",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeletePostId(null);
   };
 
   useEffect(() => {
@@ -465,35 +502,34 @@ export default function TimeLinePosts() {
                           Edit Post
                         </a>
                       </li>
-                      <li className="_feed_timeline_dropdown_item">
-                        <a
-                          href="#0"
-                          className="_feed_timeline_dropdown_link"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            closeAllDropdowns();
-                          }}
-                        >
-                          <span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="18"
-                              height="18"
-                              fill="none"
-                              viewBox="0 0 18 18"
-                            >
-                              <path
-                                stroke="#1890FF"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="1.2"
-                                d="M2.25 4.5h13.5M6 4.5V3a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0112 3v1.5m2.25 0V15a1.5 1.5 0 01-1.5 1.5h-7.5a1.5 1.5 0 01-1.5-1.5V4.5h10.5zM7.5 8.25v4.5M10.5 8.25v4.5"
-                              />
-                            </svg>
-                          </span>
-                          Delete Post
-                        </a>
-                      </li>
+                      {post.authorId === user?.id && (
+                        <li className="_feed_timeline_dropdown_item">
+                          <a
+                            href="#0"
+                            className="_feed_timeline_dropdown_link"
+                            onClick={(e) => handleDeleteClick(e, post.id)}
+                          >
+                            <span>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                fill="none"
+                                viewBox="0 0 18 18"
+                              >
+                                <path
+                                  stroke="#1890FF"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="1.2"
+                                  d="M2.25 4.5h13.5M6 4.5V3a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0112 3v1.5m2.25 0V15a1.5 1.5 0 01-1.5 1.5h-7.5a1.5 1.5 0 01-1.5-1.5V4.5h10.5zM7.5 8.25v4.5M10.5 8.25v4.5"
+                                />
+                              </svg>
+                            </span>
+                            Delete Post
+                          </a>
+                        </li>
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -655,6 +691,94 @@ export default function TimeLinePosts() {
           </div>
         );
       })}
+
+      {/* Delete Confirmation Modal */}
+      {deletePostId && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={handleCancelDelete}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "8px",
+              padding: "24px",
+              maxWidth: "400px",
+              width: "90%",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                margin: "0 0 12px 0",
+                fontSize: "18px",
+                fontWeight: "600",
+              }}
+            >
+              Delete Post
+            </h3>
+            <p
+              style={{ margin: "0 0 24px 0", color: "#666", fontSize: "14px" }}
+            >
+              Are you sure you want to delete this post? This action cannot be
+              undone.
+            </p>
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={handleCancelDelete}
+                disabled={isDeleting}
+                style={{
+                  padding: "8px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  backgroundColor: "white",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  opacity: isDeleting ? 0.6 : 1,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                style={{
+                  padding: "8px 16px",
+                  border: "none",
+                  borderRadius: "4px",
+                  backgroundColor: "#ff4d4f",
+                  color: "white",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  opacity: isDeleting ? 0.6 : 1,
+                }}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
