@@ -18,6 +18,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name?: string;
+  first_name?: string;
+  last_name?: string;
   confirmPassword?: string;
 }
 
@@ -25,6 +27,10 @@ export interface AuthResponse {
   access_token?: string;
   token?: string;
   refresh_token?: string;
+  tokens?: {
+    accessToken?: string;
+    refreshToken?: string;
+  };
   user?: User;
 }
 

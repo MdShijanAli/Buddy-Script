@@ -14,6 +14,7 @@ import registration1Image from "../../assets/images/registration1.png";
 import logoImage from "../../assets/images/logo.svg";
 import googleImage from "../../assets/images/google.svg";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function RegistrationPage() {
   const dispatch = useDispatch();
@@ -22,6 +23,8 @@ export default function RegistrationPage() {
   const navigate = useNavigate();
 
   const { values, handleChange } = useForm({
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -31,6 +34,16 @@ export default function RegistrationPage() {
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     dispatch(clearError());
+
+    if (!(values.firstName as string).trim()) {
+      alert("First name is required");
+      return;
+    }
+
+    if (!(values.lastName as string).trim()) {
+      alert("Last name is required");
+      return;
+    }
 
     // Validate passwords match
     if ((values.password as string) !== (values.confirmPassword as string)) {
@@ -46,26 +59,39 @@ export default function RegistrationPage() {
 
     try {
       const response = await register({
+        first_name: (values.firstName as string).trim(),
+        last_name: (values.lastName as string).trim(),
         email: values.email as string,
         password: values.password as string,
-        name: (values.email as string).split("@")[0], // Use email prefix as name
+        name: `${(values.firstName as string).trim()} ${(values.lastName as string).trim()}`,
       }).unwrap();
 
       if (response.user) {
+        const responseAny = response as any;
+
         dispatch(
           registerSuccess({
             user: response.user,
-            token: response.access_token || response.token || "",
-            refreshToken: response.refresh_token,
+            token: responseAny?.tokens?.accessToken || responseAny?.token || "",
+            refreshToken:
+              responseAny?.tokens?.refreshToken ||
+              responseAny?.refresh_token ||
+              "",
           }),
         );
 
         // Navigate to feed after successful registration
 
+        toast.success("Registration successful! Redirecting to feed...");
         navigate("/");
       }
     } catch (err: any) {
       console.error("Registration error:", err);
+      toast.error(
+        err?.data?.error?.message ||
+          err.message ||
+          "Registration failed. Please try again.",
+      );
     }
   };
 
@@ -139,8 +165,41 @@ export default function RegistrationPage() {
                   {" "}
                   <span>Or</span>
                 </div>
-                <form className="_social_registration_form">
+                <form
+                  className="_social_registration_form"
+                  onSubmit={handleRegisterSubmit}
+                >
                   <div className="row">
+                    <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
+                      <div className="_social_registration_form_input _mar_b14">
+                        <label className="_social_registration_label _mar_b8">
+                          First Name
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control _social_registration_input"
+                          name="firstName"
+                          value={values.firstName as string}
+                          onChange={handleChange}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+                    <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
+                      <div className="_social_registration_form_input _mar_b14">
+                        <label className="_social_registration_label _mar_b8">
+                          Last Name
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control _social_registration_input"
+                          name="lastName"
+                          value={values.lastName as string}
+                          onChange={handleChange}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                       <div className="_social_registration_form_input _mar_b14">
                         <label className="_social_registration_label _mar_b8">
@@ -219,7 +278,6 @@ export default function RegistrationPage() {
                         <button
                           type="submit"
                           className="_social_registration_form_btn_link _btn1"
-                          onClick={handleRegisterSubmit}
                           disabled={isLoading}
                         >
                           {isLoading ? "Registering..." : "Register now"}
