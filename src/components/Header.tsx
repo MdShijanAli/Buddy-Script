@@ -2,7 +2,11 @@ import { useDropdown } from "../hooks";
 import logoImg from "../assets/images/logo.svg";
 import profileImg from "../assets/images/profile.png";
 
-export default function Header() {
+interface HeaderProps {
+  onLogout?: () => void;
+}
+
+export default function Header({ onLogout }: HeaderProps) {
   const { isOpen: isProfileDropOpen, toggle: toggleProfileDrop } =
     useDropdown();
 
@@ -235,7 +239,18 @@ export default function Header() {
                       </a>
                     </li>
                     <li className="_nav_dropdown_list_item">
-                      <a href="#0" className="_nav_dropdown_link">
+                      <button
+                        type="button"
+                        onClick={onLogout}
+                        className="_nav_dropdown_link"
+                        style={{
+                          background: "none",
+                          border: "none",
+                          width: "100%",
+                          textAlign: "left",
+                          cursor: "pointer",
+                        }}
+                      >
                         <div className="_nav_drop_info">
                           <span>
                             <svg
@@ -256,7 +271,7 @@ export default function Header() {
                           </span>
                           Log Out
                         </div>
-                      </a>
+                      </button>
                     </li>
                   </ul>
                 </div>

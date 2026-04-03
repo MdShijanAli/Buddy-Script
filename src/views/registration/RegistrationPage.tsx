@@ -1,3 +1,8 @@
+import { useForm } from "../../hooks";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../../store/store";
+import { registerSuccess, clearError } from "../../store/slices/authSlice";
+import { useRegisterMutation } from "../../store/api/authApi";
 import darkShapeImg from "../../assets/images/dark_shape.svg";
 import shape1Image from "../../assets/images/shape1.svg";
 import shape2Image from "../../assets/images/shape2.svg";
@@ -9,7 +14,77 @@ import registration1Image from "../../assets/images/registration1.png";
 import logoImage from "../../assets/images/logo.svg";
 import googleImage from "../../assets/images/google.svg";
 
-export default function RegistrationPage() {
+interface RegistrationPageProps {
+  onNavigate: (page: "login" | "registration" | "feed") => void;
+}
+
+export default function RegistrationPage({
+  onNavigate,
+}: RegistrationPageProps) {
+  const dispatch = useDispatch();
+  const { error: authError } = useSelector((state: RootState) => state.auth);
+  const [register, { isLoading, error }] = useRegisterMutation();
+
+  const { values, handleChange } = useForm({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    agreeTerms: false,
+  });
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    dispatch(clearError());
+
+    // Validate passwords match
+    if ((values.password as string) !== (values.confirmPassword as string)) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    // Validate terms accepted
+    if ((values.agreeTerms as boolean) !== true) {
+      alert("You must agree to the terms and conditions");
+      return;
+    }
+
+    try {
+      const response = await register({
+        email: values.email as string,
+        password: values.password as string,
+        name: (values.email as string).split("@")[0], // Use email prefix as name
+      }).unwrap();
+
+      if (response.user) {
+        dispatch(
+          registerSuccess({
+            user: response.user,
+            token: response.access_token || response.token || "",
+            refreshToken: response.refresh_token,
+          }),
+        );
+
+        // Navigate to feed after successful registration
+        setTimeout(() => onNavigate("feed"), 500);
+      }
+    } catch (err: any) {
+      console.error("Registration error:", err);
+    }
+  };
+
+  const handleNavigateToLogin = () => {
+    onNavigate("login");
+  };
+
+  const errorMessage = error
+    ? typeof error === "object" &&
+      "data" in error &&
+      error.data &&
+      typeof error.data === "object" &&
+      "message" in error.data
+      ? (error.data as { message: string }).message
+      : "Registration failed. Please try again."
+    : authError;
   return (
     <section className="_social_registration_wrapper _layout_main_wrapper">
       <div className="_shape_one">
@@ -77,6 +152,10 @@ export default function RegistrationPage() {
                         <input
                           type="email"
                           className="form-control _social_registration_input"
+                          name="email"
+                          value={values.email as string}
+                          onChange={handleChange}
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -88,6 +167,10 @@ export default function RegistrationPage() {
                         <input
                           type="password"
                           className="form-control _social_registration_input"
+                          name="password"
+                          value={values.password as string}
+                          onChange={handleChange}
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -99,19 +182,30 @@ export default function RegistrationPage() {
                         <input
                           type="password"
                           className="form-control _social_registration_input"
+                          name="confirmPassword"
+                          value={values.confirmPassword as string}
+                          onChange={handleChange}
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
                   </div>
+                  {error && (
+                    <div className="alert alert-danger _mar_b20">
+                      {errorMessage}
+                    </div>
+                  )}
                   <div className="row">
                     <div className="col-lg-12 col-xl-12 col-md-12 col-sm-12">
                       <div className="form-check _social_registration_form_check">
                         <input
                           className="form-check-input _social_registration_form_check_input"
-                          type="radio"
-                          name="flexRadioDefault"
+                          type="checkbox"
+                          name="agreeTerms"
                           id="flexRadioDefault2"
-                          checked
+                          checked={values.agreeTerms === true}
+                          onChange={handleChange}
+                          disabled={isLoading}
                         />
                         <label
                           className="form-check-label _social_registration_form_check_label"
@@ -126,10 +220,12 @@ export default function RegistrationPage() {
                     <div className="col-lg-12 col-md-12 col-xl-12 col-sm-12">
                       <div className="_social_registration_form_btn _mar_t40 _mar_b60">
                         <button
-                          type="button"
+                          type="submit"
                           className="_social_registration_form_btn_link _btn1"
+                          onClick={handleRegisterSubmit}
+                          disabled={isLoading}
                         >
-                          Login now
+                          {isLoading ? "Registering..." : "Register now"}
                         </button>
                       </div>
                     </div>
@@ -139,8 +235,20 @@ export default function RegistrationPage() {
                   <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                     <div className="_social_registration_bottom_txt">
                       <p className="_social_registration_bottom_txt_para">
-                        Dont have an account?{" "}
-                        <a href="#0">Create New Account</a>
+                        Already have an account?{" "}
+                        <button
+                          type="button"
+                          onClick={handleNavigateToLogin}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "inherit",
+                            cursor: "pointer",
+                            textDecoration: "underline",
+                          }}
+                        >
+                          Sign In
+                        </button>
                       </p>
                     </div>
                   </div>

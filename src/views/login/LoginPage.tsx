@@ -1,4 +1,8 @@
 import { useForm } from "../../hooks";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../../store/store";
+import { loginSuccess, clearError } from "../../store/slices/authSlice";
+import { useLoginMutation } from "../../store/api/authApi";
 import shape1 from "../../assets/images/shape1.svg";
 import darkShape from "../../assets/images/dark_shape.svg";
 import shape2 from "../../assets/images/shape2.svg";
@@ -8,19 +12,68 @@ import darkShape2 from "../../assets/images/dark_shape2.svg";
 import loginImg from "../../assets/images/login.png";
 import logoImg from "../../assets/images/logo.svg";
 import googleImg from "../../assets/images/google.svg";
+import { toast } from "react-toastify";
 
-export default function LoginPage() {
+interface LoginPageProps {
+  onNavigate: (page: "login" | "registration" | "feed") => void;
+}
+
+export default function LoginPage({ onNavigate }: LoginPageProps) {
+  const dispatch = useDispatch();
+  const { error: authError } = useSelector((state: RootState) => state.auth);
+  const [login, { isLoading, error }] = useLoginMutation();
+
   const { values, handleChange } = useForm({
     email: "",
     password: "",
     rememberMe: false,
   });
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login form submitted:", values);
-    // Add your login logic here
+    dispatch(clearError());
+
+    try {
+      const response = await login({
+        email: values.email,
+        password: values.password,
+      }).unwrap();
+
+      if (response.user) {
+        dispatch(
+          loginSuccess({
+            user: response.user,
+            token: response.access_token || response.token || "",
+            refreshToken: response.refresh_token,
+          }),
+        );
+
+        // Navigate to feed after successful login
+        setTimeout(() => onNavigate("feed"), 500);
+      }
+    } catch (err: any) {
+      console.error("Login error:", err);
+      toast.error(
+        err?.data?.error?.message ||
+          err.message ||
+          "Login failed. Please try again.",
+      );
+    }
   };
+
+  const handleNavigateToRegistration = () => {
+    onNavigate("registration");
+  };
+
+  const errorMessage = error
+    ? typeof error === "object" &&
+      "data" in error &&
+      error.data &&
+      typeof error.data === "object" &&
+      "message" in error.data
+      ? (error.data as { message: string }).message
+      : "Login failed. Please try again."
+    : authError;
 
   return (
     <div>
@@ -87,6 +140,10 @@ export default function LoginPage() {
                           <input
                             type="email"
                             className="form-control _social_login_input"
+                            name="email"
+                            value={values.email as string}
+                            onChange={handleChange}
+                            disabled={isLoading}
                           />
                         </div>
                       </div>
@@ -98,19 +155,30 @@ export default function LoginPage() {
                           <input
                             type="password"
                             className="form-control _social_login_input"
+                            name="password"
+                            value={values.password as string}
+                            onChange={handleChange}
+                            disabled={isLoading}
                           />
                         </div>
                       </div>
                     </div>
+                    {error && (
+                      <div className="alert alert-danger _mar_b20">
+                        {errorMessage}
+                      </div>
+                    )}
                     <div className="row">
                       <div className="col-lg-6 col-xl-6 col-md-6 col-sm-12">
                         <div className="form-check _social_login_form_check">
                           <input
                             className="form-check-input _social_login_form_check_input"
                             type="radio"
-                            name="flexRadioDefault"
+                            name="rememberMe"
                             id="flexRadioDefault2"
-                            defaultChecked
+                            checked={values.rememberMe === true}
+                            onChange={handleChange}
+                            disabled={isLoading}
                           />
                           <label
                             className="form-check-label _social_login_form_check_label"
@@ -132,10 +200,12 @@ export default function LoginPage() {
                       <div className="col-lg-12 col-md-12 col-xl-12 col-sm-12">
                         <div className="_social_login_form_btn _mar_t40 _mar_b60">
                           <button
-                            type="button"
+                            type="submit"
                             className="_social_login_form_btn_link _btn1"
+                            onClick={handleLoginSubmit}
+                            disabled={isLoading}
                           >
-                            Login now
+                            {isLoading ? "Logging in..." : "Login now"}
                           </button>
                         </div>
                       </div>
@@ -146,7 +216,19 @@ export default function LoginPage() {
                       <div className="_social_login_bottom_txt">
                         <p className="_social_login_bottom_txt_para">
                           Dont have an account?{" "}
-                          <a href="#0">Create New Account</a>
+                          <button
+                            type="button"
+                            onClick={handleNavigateToRegistration}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              color: "inherit",
+                              cursor: "pointer",
+                              textDecoration: "underline",
+                            }}
+                          >
+                            Create New Account
+                          </button>
                         </p>
                       </div>
                     </div>
