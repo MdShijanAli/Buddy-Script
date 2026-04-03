@@ -1,7 +1,11 @@
 import { useDropdown } from "../hooks";
 import logoImg from "../assets/images/logo.svg";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useMemo } from "react";
+import { useLogoutMutation } from "../store/api/authApi";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../store/slices/authSlice";
 
 export default function Header() {
   const {
@@ -10,6 +14,9 @@ export default function Header() {
     dropdownRef,
   } = useDropdown();
 
+  const [signOut] = useLogoutMutation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user } = useSelector((state: any) => state.auth);
   const displayName = useMemo(() => {
     const fallbackName = user?.firstName || user?.name || "";
@@ -21,7 +28,30 @@ export default function Header() {
     return source.trim().charAt(0).toUpperCase() || "U";
   }, [user?.name, user?.firstName]);
 
-  const handleLogout = () => {};
+  const handleLogout = async () => {
+    const toastId = toast.loading("Logging out...");
+
+    try {
+      await signOut().unwrap();
+      dispatch(logout());
+      navigate("/login");
+      toast.update(toastId, {
+        render: "Logged out successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } catch (err: any) {
+      const errorMessage =
+        err?.data?.message || err?.message || "Failed to logout";
+      toast.update(toastId, {
+        render: errorMessage,
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    }
+  };
 
   return (
     <>
