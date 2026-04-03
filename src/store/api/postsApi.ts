@@ -6,7 +6,17 @@ export interface Author {
   id: string;
   email: string;
   name: string;
-  profile_image?: string;
+  profile_image?: string | null;
+}
+
+export interface PostLike {
+  userId: string;
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+    profile_image?: string | null;
+  };
 }
 
 export interface Post {
@@ -17,7 +27,7 @@ export interface Post {
   userId: string;
   authorId?: string;
   userName?: string;
-  profile_image?: string;
+  profile_image?: string | null;
   createdAt: string;
   updatedAt?: string;
   likesCount?: number;
@@ -26,6 +36,7 @@ export interface Post {
   visibility?: string;
   isPublished?: boolean;
   author?: Author;
+  likes?: PostLike[];
 }
 
 export interface CreatePostRequest {

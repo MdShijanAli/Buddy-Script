@@ -6,7 +6,10 @@ export interface User {
   id: string;
   email: string;
   name?: string;
-  avatar?: string;
+  profile_image?: string;
+  profileImage?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface LoginRequest {

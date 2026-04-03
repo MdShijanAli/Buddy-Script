@@ -1780,6 +1780,7 @@
 }
 ._post_img {
     max-width: 44px;
+    max-height: 44px;
     -webkit-transition:.2s all ease;
     -o-transition:.2s all ease;
     transition:.2s all ease;

@@ -183,6 +183,12 @@ export default function Header() {
                     src={user.profileImage}
                     alt="Profile"
                     className="_nav_profile_img"
+                    style={{
+                      width: "30px",
+                      height: "30px",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
                   />
                 ) : (
                   <div className="_nav_profile_placeholder">{userInitial}</div>
@@ -225,6 +231,12 @@ export default function Header() {
                         src={user.profileImage}
                         alt="Profile"
                         className="_nav_profile_img"
+                        style={{
+                          width: "30px",
+                          height: "30px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
                       />
                     ) : (
                       <div className="_nav_profile_placeholder _nav_profile_placeholder_large">

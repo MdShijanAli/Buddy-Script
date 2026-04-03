@@ -205,7 +205,17 @@ export default function PostForm() {
       <div className="_feed_inner_text_area_box">
         <div className="_feed_inner_text_area_box_image p-1">
           {user?.profileImage ? (
-            <img src={user.profileImage} alt="Image" className="_txt_img" />
+            <img
+              src={user.profileImage}
+              alt="Image"
+              className="_txt_img"
+              style={{
+                width: "30px",
+                height: "30px",
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
+            />
           ) : (
             <div className="_nav_profile_placeholder p-2">{userInitial}</div>
           )}

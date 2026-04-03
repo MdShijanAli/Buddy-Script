@@ -97,6 +97,7 @@ export const likesApi = createApi({
 
 export const {
   useGetPostLikesQuery,
+  useLazyGetPostLikesQuery,
   useLikePostMutation,
   useUnlikePostMutation,
   useGetCommentLikesQuery,

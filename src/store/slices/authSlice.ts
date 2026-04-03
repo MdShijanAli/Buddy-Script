@@ -9,6 +9,7 @@ interface User {
   firstName: string;
   lastName: string;
   profileImage?: string;
+  profile_image?: string;
 }
 
 interface AuthState {
