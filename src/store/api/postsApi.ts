@@ -2,12 +2,20 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { apiRoutes } from "../../api/apiRoutes";
 import type { RootState } from "../store";
 
+export interface Author {
+  id: string;
+  email: string;
+  name: string;
+  profileImage?: string;
+}
+
 export interface Post {
   id: string;
   title?: string;
   content: string;
   imageUrl?: string;
   userId: string;
+  authorId?: string;
   userName?: string;
   userAvatar?: string;
   createdAt: string;
@@ -15,6 +23,9 @@ export interface Post {
   likesCount?: number;
   commentsCount?: number;
   liked?: boolean;
+  visibility?: string;
+  isPublished?: boolean;
+  author?: Author;
 }
 
 export interface CreatePostRequest {
@@ -42,6 +53,7 @@ export const postsApi = createApi({
         url: apiRoutes.post.getAll,
         method: "GET",
       }),
+      transformResponse: (response: any) => response.posts || [],
       providesTags: ["Posts"],
     }),
 
@@ -50,6 +62,7 @@ export const postsApi = createApi({
         url: apiRoutes.post.myPosts,
         method: "GET",
       }),
+      transformResponse: (response: any) => response.posts || [],
       providesTags: ["MyPosts"],
     }),
 
