@@ -4,6 +4,7 @@ import LoginPage from "../views/login/LoginPage";
 import PrivateRoute from "./privetRoutes";
 import FeedPage from "../views/feed/FeedPage";
 import RegistrationPage from "../views/registration/RegistrationPage";
+import NoPageFound from "../views/NoPageFound";
 
 const AppRoutes = () => {
   return (
@@ -35,6 +36,8 @@ const AppRoutes = () => {
           </PrivateRoute>
         }
       />
+
+      <Route path="*" element={<NoPageFound />} />
     </Routes>
   );
 };

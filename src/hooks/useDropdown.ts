@@ -19,18 +19,24 @@ export const useDropdown = (initialOpen = false) => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (!dropdownRef.current) return;
+
+      // Use composedPath to handle clicks on SVG and nested elements
+      const path = event.composedPath();
+      const isClickInside = path.some(
+        (element) => element === dropdownRef.current,
+      );
+
+      if (!isClickInside) {
         close();
       }
     };
 
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      // Use capture phase for more reliable detection
+      document.addEventListener("mousedown", handleClickOutside, true);
       return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("mousedown", handleClickOutside, true);
       };
     }
   }, [isOpen, close]);

@@ -80,7 +80,7 @@ export default function FeedPage() {
       </div>
 
       <div className="_main_layout">
-        <Header onLogout={handleLogout} />
+        <Header />
 
         <div className="container _custom_container">
           <div className="_layout_inner_wrap">

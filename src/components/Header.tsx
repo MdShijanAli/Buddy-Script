@@ -2,13 +2,14 @@ import { useDropdown } from "../hooks";
 import logoImg from "../assets/images/logo.svg";
 import profileImg from "../assets/images/profile.png";
 
-interface HeaderProps {
-  onLogout?: () => void;
-}
+export default function Header() {
+  const {
+    isOpen: isProfileDropOpen,
+    toggle: toggleProfileDrop,
+    dropdownRef,
+  } = useDropdown();
 
-export default function Header({ onLogout }: HeaderProps) {
-  const { isOpen: isProfileDropOpen, toggle: toggleProfileDrop } =
-    useDropdown();
+  const handleLogout = () => {};
 
   return (
     <>
@@ -137,7 +138,7 @@ export default function Header({ onLogout }: HeaderProps) {
                 </a>
               </li>
             </ul>
-            <div className="_header_nav_profile">
+            <div className="_header_nav_profile" ref={dropdownRef}>
               <div className="_header_nav_profile_image">
                 <img
                   src={profileImg}
@@ -150,7 +151,10 @@ export default function Header({ onLogout }: HeaderProps) {
                 <button
                   className="_header_nav_dropdown_btn _dropdown_toggle"
                   type="button"
-                  onClick={toggleProfileDrop}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleProfileDrop();
+                  }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -168,7 +172,10 @@ export default function Header({ onLogout }: HeaderProps) {
               </div>
               {/* Dropdown */}
               {isProfileDropOpen && (
-                <div className="_nav_profile_dropdown _profile_dropdown">
+                <div
+                  className="_nav_profile_dropdown _profile_dropdown"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="_nav_profile_dropdown_info">
                     <div className="_nav_profile_dropdown_image">
                       <img
@@ -241,7 +248,7 @@ export default function Header({ onLogout }: HeaderProps) {
                     <li className="_nav_dropdown_list_item">
                       <button
                         type="button"
-                        onClick={onLogout}
+                        onClick={handleLogout}
                         className="_nav_dropdown_link"
                         style={{
                           background: "none",
