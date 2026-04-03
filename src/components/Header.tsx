@@ -1,4 +1,4 @@
-import { useDropdown } from "../hooks";
+import { useDropdown, useUserInitial } from "../hooks";
 import logoImg from "../assets/images/logo.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { useMemo } from "react";
@@ -23,10 +23,7 @@ export default function Header() {
     return fallbackName || "User";
   }, [user?.firstName, user?.name]);
 
-  const userInitial = useMemo(() => {
-    const source = user?.name || user?.firstName || "";
-    return source.trim().charAt(0).toUpperCase() || "U";
-  }, [user?.name, user?.firstName]);
+  const userInitial = useUserInitial(user);
 
   const handleLogout = async () => {
     const toastId = toast.loading("Logging out...");

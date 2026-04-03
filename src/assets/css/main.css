@@ -857,8 +857,8 @@
     object-fit: cover;
 }
 ._nav_profile_placeholder {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     border: 1px solid var(--color5);
     background: rgba(55, 125, 255, 0.12);
