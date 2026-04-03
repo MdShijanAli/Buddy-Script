@@ -6,7 +6,7 @@ export interface Author {
   id: string;
   email: string;
   name: string;
-  profileImage?: string;
+  profile_image?: string;
 }
 
 export interface Post {
@@ -17,7 +17,7 @@ export interface Post {
   userId: string;
   authorId?: string;
   userName?: string;
-  userAvatar?: string;
+  profile_image?: string;
   createdAt: string;
   updatedAt?: string;
   likesCount?: number;

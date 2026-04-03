@@ -76,9 +76,9 @@ export default function TimeLinePosts() {
             <div className="_feed_inner_timeline_post_top">
               <div className="_feed_inner_timeline_post_box">
                 <div className="_feed_inner_timeline_post_box_image">
-                  {post.author?.profileImage ? (
+                  {post.author?.profile_image ? (
                     <img
-                      src={post.author.profileImage}
+                      src={post.author.profile_image}
                       alt={post.author.name}
                       className="_post_img"
                     />
@@ -174,10 +174,10 @@ export default function TimeLinePosts() {
           </div>
 
           {/* Likes and comments count */}
-          {post.likesCount > 0 || post.commentsCount > 0 ? (
+          {(post.likesCount ?? 0) > 0 || (post.commentsCount ?? 0) > 0 ? (
             <div className="_feed_inner_timeline_total_reacts _padd_r24 _padd_l24 _mar_b26">
               <div className="_feed_inner_timeline_total_reacts_image">
-                {post.likesCount > 0 && (
+                {(post.likesCount ?? 0) > 0 && (
                   <>
                     <img
                       src={reactImage1}
@@ -186,16 +186,18 @@ export default function TimeLinePosts() {
                     />
                     <img src={reactImage2} alt="Image" className="_react_img" />
                     <p className="_feed_inner_timeline_total_reacts_para">
-                      {post.likesCount > 9 ? "9+" : post.likesCount}
+                      {(post.likesCount ?? 0) > 9
+                        ? "9+"
+                        : (post.likesCount ?? 0)}
                     </p>
                   </>
                 )}
               </div>
               <div className="_feed_inner_timeline_total_reacts_txt">
-                {post.commentsCount > 0 && (
+                {(post.commentsCount ?? 0) > 0 && (
                   <p className="_feed_inner_timeline_total_reacts_para1">
                     <a href="#0">
-                      <span>{post.commentsCount}</span> Comment
+                      <span>{post.commentsCount ?? 0}</span> Comment
                     </a>
                   </p>
                 )}
