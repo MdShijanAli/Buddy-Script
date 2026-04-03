@@ -1,19 +1,23 @@
+import People1Image from "../assets/images/people1.png";
+import People2Image from "../assets/images/people2.png";
+import People3Image from "../assets/images/people3.png";
+
 export default function LeftSidebar() {
   const suggestedPeople = [
     {
       name: "Steve Jobs",
       company: "CEO of Apple",
-      image: "people1.png",
+      image: People1Image,
     },
     {
       name: "Ryan Roslansky",
       company: "CEO of Linkedin",
-      image: "people2.png",
+      image: People2Image,
     },
     {
       name: "Dylan Field",
       company: "CEO of Figma",
-      image: "people3.png",
+      image: People3Image,
     },
   ];
 
@@ -188,31 +192,48 @@ export default function LeftSidebar() {
           </ul>
         </div>
 
-        <div className="_left_inner_area_suggested_people _padd_t24 _padd_b6 _padd_r24 _padd_l24 _b_radious6 _feed_inner_area">
-          <div className="_suggested_people_header">
-            <h4 className="_left_inner_area_explore_title _title5 _mar_b24">
+        <div className="_left_inner_area_suggest _padd_t24 _padd_b6 _padd_r24 _padd_l24 _b_radious6 _feed_inner_area">
+          <div className="_left_inner_area_suggest_content _mar_b24">
+            <h4 className="_left_inner_area_suggest_content_title _title5">
               Suggested People
             </h4>
-            <a href="#0" className="_suggested_people_see_all">
-              See All
-            </a>
+            <span className="_left_inner_area_suggest_content_txt">
+              <a
+                className="_left_inner_area_suggest_content_txt_link"
+                href="#0"
+              >
+                See All
+              </a>
+            </span>
           </div>
           {suggestedPeople.map((person, index) => (
-            <div key={index} className="_suggested_people_card _mar_b20">
-              <div className="_suggested_people_info">
-                <div className="_suggested_people_image">
-                  <img
-                    src={`/assets/images/${person.image}`}
-                    alt={person.name}
-                    className="_people_card_image"
-                  />
+            <div key={index} className="_left_inner_area_suggest_info">
+              <div className="_left_inner_area_suggest_info_box">
+                <div className="_left_inner_area_suggest_info_image">
+                  <a href="/profile">
+                    <img
+                      src={person.image}
+                      alt={person.name}
+                      className={index === 0 ? "_info_img" : "_info_img1"}
+                    />
+                  </a>
                 </div>
-                <div className="_suggested_people_details">
-                  <h5 className="_suggested_people_name">{person.name}</h5>
-                  <p className="_suggested_people_company">{person.company}</p>
+                <div className="_left_inner_area_suggest_info_txt">
+                  <a href="/profile">
+                    <h4 className="_left_inner_area_suggest_info_title">
+                      {person.name}
+                    </h4>
+                  </a>
+                  <p className="_left_inner_area_suggest_info_para">
+                    {person.company}
+                  </p>
                 </div>
               </div>
-              <button className="_suggested_people_btn _btn1">Connect</button>
+              <div className="_left_inner_area_suggest_info_link">
+                <a href="#0" className="_info_link">
+                  Connect
+                </a>
+              </div>
             </div>
           ))}
         </div>
