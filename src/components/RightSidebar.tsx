@@ -1,4 +1,60 @@
+import AvaterImage from "../assets/images/Avatar.png";
+import People1Image from "../assets/images/people1.png";
+import People2Image from "../assets/images/people2.png";
+import People3Image from "../assets/images/people3.png";
+
 export default function RightSidebar() {
+  const friends = [
+    {
+      name: "Steve Jobs",
+      company: "CEO of Apple",
+      image: People1Image,
+      isActive: false,
+    },
+    {
+      name: "Ryan Roslansky",
+      company: "CEO of Linkedin",
+      image: People2Image,
+      isActive: true,
+    },
+    {
+      name: "Dylan Field",
+      company: "CEO of Figma",
+      image: People3Image,
+      isActive: true,
+    },
+    {
+      name: "Steve Jobs",
+      company: "CEO of Apple",
+      image: People1Image,
+      isActive: false,
+    },
+    {
+      name: "Ryan Roslansky",
+      company: "CEO of Linkedin",
+      image: People2Image,
+      isActive: true,
+    },
+    {
+      name: "Dylan Field",
+      company: "CEO of Figma",
+      image: People3Image,
+      isActive: true,
+    },
+    {
+      name: "Dylan Field",
+      company: "CEO of Figma",
+      image: People3Image,
+      isActive: true,
+    },
+    {
+      name: "Steve Jobs",
+      company: "CEO of Apple",
+      image: People1Image,
+      isActive: false,
+    },
+  ];
+
   return (
     <div className="_layout_right_sidebar_wrap">
       <div className="_layout_right_sidebar_inner">
@@ -18,11 +74,7 @@ export default function RightSidebar() {
             <div className="_right_inner_area_info_box">
               <div className="_right_inner_area_info_box_image">
                 <a href="/profile">
-                  <img
-                    src="assets/images/Avatar.png"
-                    alt="Image"
-                    className="_ppl_img"
-                  />
+                  <img src={AvaterImage} alt="Image" className="_ppl_img" />
                 </a>
               </div>
               <div className="_right_inner_area_info_box_txt">
@@ -94,26 +146,7 @@ export default function RightSidebar() {
           </div>
 
           <div className="_feed_bottom_fixed">
-            {[
-              {
-                name: "Steve Jobs",
-                company: "CEO of Apple",
-                image: "assets/images/people1.png",
-                isActive: false,
-              },
-              {
-                name: "Ryan Roslansky",
-                company: "CEO of Linkedin",
-                image: "assets/images/people2.png",
-                isActive: true,
-              },
-              {
-                name: "Dylan Field",
-                company: "CEO of Figma",
-                image: "assets/images/people3.png",
-                isActive: true,
-              },
-            ].map((friend, index) => (
+            {friends.map((friend, index) => (
               <div
                 key={index}
                 className={`_feed_right_inner_area_card_ppl ${!friend.isActive ? "_feed_right_inner_area_card_ppl_inactive" : ""}`}
