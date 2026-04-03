@@ -1,6 +1,7 @@
 import People1Image from "../assets/images/people1.png";
 import People2Image from "../assets/images/people2.png";
 import People3Image from "../assets/images/people3.png";
+import FeedEvent1Image from "../assets/images/feed_event1.png";
 
 export default function LeftSidebar() {
   const suggestedPeople = [
@@ -27,12 +28,14 @@ export default function LeftSidebar() {
       month: "Jul",
       title: "No more terrorism no more cry",
       attendees: "17 People Going",
+      image: FeedEvent1Image,
     },
     {
       date: "11",
       month: "Jul",
       title: "No more terrorism no more cry",
       attendees: "17 People Going",
+      image: FeedEvent1Image,
     },
   ];
 
@@ -238,29 +241,43 @@ export default function LeftSidebar() {
           ))}
         </div>
 
-        <div className="_left_inner_area_events _padd_t24 _padd_b6 _padd_r24 _padd_l24 _b_radious6 _feed_inner_area">
-          <div className="_events_header">
-            <h4 className="_left_inner_area_explore_title _title5 _mar_b24">
-              Events
-            </h4>
-            <a href="#0" className="_events_see_all">
+        <div className="_left_inner_area_event _padd_t24 _padd_b6 _padd_r24 _padd_l24 _b_radious6 _feed_inner_area">
+          <div className="_left_inner_event_content">
+            <h4 className="_left_inner_event_title _title5">Events</h4>
+            <a href="/event" className="_left_inner_event_link">
               See all
             </a>
           </div>
           {events.map((event, index) => (
-            <div key={index} className="_events_card _mar_b20">
-              <div className="_events_card_content">
-                <div className="_events_card_date">
-                  <span className="_events_date_day">{event.date}</span>
-                  <span className="_events_date_month">{event.month}</span>
+            <a
+              key={index}
+              className="_left_inner_event_card_link"
+              href="/event-single"
+            >
+              <div className="_left_inner_event_card">
+                <div className="_left_inner_event_card_iamge">
+                  <img src={event.image} alt="Image" className="_card_img" />
                 </div>
-                <div className="_events_card_details">
-                  <h5 className="_events_card_title">{event.title}</h5>
-                  <p className="_events_card_attendees">{event.attendees}</p>
+                <div className="_left_inner_event_card_content">
+                  <div className="_left_inner_card_date">
+                    <p className="_left_inner_card_date_para">{event.date}</p>
+                    <p className="_left_inner_card_date_para1">{event.month}</p>
+                  </div>
+                  <div className="_left_inner_card_txt">
+                    <h4 className="_left_inner_event_card_title">
+                      {event.title}
+                    </h4>
+                  </div>
+                </div>
+                <hr className="_underline" />
+                <div className="_left_inner_event_bottom">
+                  <p className="_left_iner_event_bottom">{event.attendees}</p>
+                  <a href="#0" className="_left_iner_event_bottom_link">
+                    Going
+                  </a>
                 </div>
               </div>
-              <button className="_events_btn _btn1">Going</button>
-            </div>
+            </a>
           ))}
         </div>
       </div>
