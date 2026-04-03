@@ -7,25 +7,23 @@ import Header from "../../components/Header";
 import LeftSidebar from "../../components/LeftSidebar";
 import FeedMiddle from "../../components/FeedMiddle";
 import RightSidebar from "../../components/RightSidebar";
+import { useNavigate } from "react-router-dom";
 
-interface FeedPageProps {
-  onNavigate: (page: "login" | "registration" | "feed") => void;
-}
-
-export default function FeedPage({ onNavigate }: FeedPageProps) {
+export default function FeedPage() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await authService.signout();
       dispatch(logout());
-      onNavigate("login");
+      navigate("/login");
     } catch (error) {
       console.error("Logout error:", error);
       // Still logout locally even if API call fails
       dispatch(logout());
-      onNavigate("login");
+      navigate("/login");
     }
   };
 

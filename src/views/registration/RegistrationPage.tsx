@@ -13,17 +13,13 @@ import registrationImage from "../../assets/images/registration.png";
 import registration1Image from "../../assets/images/registration1.png";
 import logoImage from "../../assets/images/logo.svg";
 import googleImage from "../../assets/images/google.svg";
+import { useNavigate } from "react-router-dom";
 
-interface RegistrationPageProps {
-  onNavigate: (page: "login" | "registration" | "feed") => void;
-}
-
-export default function RegistrationPage({
-  onNavigate,
-}: RegistrationPageProps) {
+export default function RegistrationPage() {
   const dispatch = useDispatch();
   const { error: authError } = useSelector((state: RootState) => state.auth);
   const [register, { isLoading, error }] = useRegisterMutation();
+  const navigate = useNavigate();
 
   const { values, handleChange } = useForm({
     email: "",
@@ -65,7 +61,8 @@ export default function RegistrationPage({
         );
 
         // Navigate to feed after successful registration
-        setTimeout(() => onNavigate("feed"), 500);
+
+        navigate("/");
       }
     } catch (err: any) {
       console.error("Registration error:", err);
@@ -73,7 +70,7 @@ export default function RegistrationPage({
   };
 
   const handleNavigateToLogin = () => {
-    onNavigate("login");
+    navigate("/login");
   };
 
   const errorMessage = error

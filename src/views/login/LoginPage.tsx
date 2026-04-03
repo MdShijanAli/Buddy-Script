@@ -13,15 +13,13 @@ import loginImg from "../../assets/images/login.png";
 import logoImg from "../../assets/images/logo.svg";
 import googleImg from "../../assets/images/google.svg";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
-interface LoginPageProps {
-  onNavigate: (page: "login" | "registration" | "feed") => void;
-}
-
-export default function LoginPage({ onNavigate }: LoginPageProps) {
+export default function LoginPage() {
   const dispatch = useDispatch();
   const { error: authError } = useSelector((state: RootState) => state.auth);
   const [login, { isLoading, error }] = useLoginMutation();
+  const navigate = useNavigate();
 
   const { values, handleChange } = useForm({
     email: "",
@@ -43,13 +41,13 @@ export default function LoginPage({ onNavigate }: LoginPageProps) {
         dispatch(
           loginSuccess({
             user: response.user,
-            token: response.access_token || response.token || "",
-            refreshToken: response.refresh_token,
+            token: response?.tokens?.accessToken || response.token || "",
+            refreshToken:
+              response?.tokens?.refreshToken || response.refresh_token || "",
           }),
         );
 
-        // Navigate to feed after successful login
-        setTimeout(() => onNavigate("feed"), 500);
+        navigate("/");
       }
     } catch (err: any) {
       console.error("Login error:", err);
@@ -62,7 +60,7 @@ export default function LoginPage({ onNavigate }: LoginPageProps) {
   };
 
   const handleNavigateToRegistration = () => {
-    onNavigate("registration");
+    navigate("/registration");
   };
 
   const errorMessage = error
