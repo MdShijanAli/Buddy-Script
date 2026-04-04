@@ -6,7 +6,8 @@ export interface Comment {
   id: string;
   content: string;
   postId: string;
-  userId: string;
+  userId?: string;
+  authorId?: string;
   userName?: string;
   userAvatar?: string;
   createdAt: string;
@@ -14,6 +15,33 @@ export interface Comment {
   likesCount?: number;
   repliesCount?: number;
   liked?: boolean;
+  author?: {
+    id: string;
+    email?: string;
+    name?: string;
+    profile_image?: string;
+  };
+  replies?: CommentReply[];
+}
+
+export interface CommentReply {
+  id: string;
+  commentId: string;
+  userId?: string;
+  authorId?: string;
+  content: string;
+  imageUrl?: string | null;
+  likesCount?: number;
+  createdAt: string;
+  updatedAt?: string;
+  userName?: string;
+  userAvatar?: string;
+  author?: {
+    id: string;
+    email?: string;
+    name?: string;
+    profile_image?: string;
+  };
 }
 
 export interface CreateCommentRequest {
@@ -34,6 +62,8 @@ export const commentsApi = createApi({
         url: apiRoutes.comment.getPostComments(postId),
         method: "GET",
       }),
+      transformResponse: (response: { comments?: Comment[] }) =>
+        response.comments ?? [],
       providesTags: (_result, _error, postId) => [
         { type: "Comments", id: postId },
       ],
@@ -77,6 +107,7 @@ export const commentsApi = createApi({
 
 export const {
   useGetPostCommentsQuery,
+  useLazyGetPostCommentsQuery,
   useCreateCommentMutation,
   useUpdateCommentMutation,
   useDeleteCommentMutation,

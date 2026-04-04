@@ -64,6 +64,7 @@ export const repliesApi = createApi({
 
 export const {
   useGetCommentRepliesQuery,
+  useLazyGetCommentRepliesQuery,
   useCreateReplyMutation,
   useDeleteReplyMutation,
 } = repliesApi;
