@@ -1,6 +1,8 @@
 import reactImage1 from "../assets/images/react_img1.png";
 import reactImage2 from "../assets/images/react_img2.png";
-import commentAuthorFallbackImage from "../assets/images/txt_img.png";
+import reactImage3 from "../assets/images/react_img3.png";
+import reactImage4 from "../assets/images/react_img4.png";
+import reactImage5 from "../assets/images/react_img5.png";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -78,9 +80,7 @@ export default function TimeLinePosts() {
     };
   }, [user]);
 
-  const commentImage = useMemo(() => {
-    return user?.profile_image || user?.profileImage || null;
-  }, [user]);
+  const getLikeUserId = (like: PostLike) => like.userId || like.user?.id || "";
 
   useEffect(() => {
     if (!posts) return;
@@ -89,16 +89,28 @@ export default function TimeLinePosts() {
       const next = { ...prev };
       posts.forEach((post) => {
         const current = next[post.id];
-        const likedFromResponse = Boolean(
-          user?.id && post.likes?.some((item) => item.userId === user.id),
+        const likeUsersFromResponse = post.likes ?? [];
+        const likedFromLikesList = Boolean(
+          user?.id &&
+          likeUsersFromResponse.some((item) => getLikeUserId(item) === user.id),
         );
+        const likedFromResponse = Boolean(post.liked || likedFromLikesList);
         const likesCountFromResponse =
           post.likes?.length ?? post.likesCount ?? 0;
+        const mergedPreviewUsers = [...likeUsersFromResponse];
+
+        if (
+          likedFromResponse &&
+          currentUserLike &&
+          !mergedPreviewUsers.some(
+            (item) => getLikeUserId(item) === getLikeUserId(currentUserLike),
+          )
+        ) {
+          mergedPreviewUsers.unshift(currentUserLike);
+        }
 
         next[post.id] = {
-          liked: current?.pending
-            ? current.liked
-            : (post.liked ?? likedFromResponse),
+          liked: current?.pending ? current.liked : likedFromResponse,
           likesCount: current?.pending
             ? current.likesCount
             : likesCountFromResponse,
@@ -106,12 +118,12 @@ export default function TimeLinePosts() {
           pending: current?.pending ?? false,
           likePreviewUsers: current?.pending
             ? current.likePreviewUsers
-            : (post.likes ?? []),
+            : mergedPreviewUsers.slice(0, 5),
         };
       });
       return next;
     });
-  }, [posts, user?.id]);
+  }, [posts, user?.id, currentUserLike]);
 
   const handleLike = async (postId: string) => {
     const current =
@@ -137,11 +149,13 @@ export default function TimeLinePosts() {
     const nextPreviewUsers = willLike
       ? currentUserLike &&
         !current.likePreviewUsers.some(
-          (item) => item.userId === currentUserLike.userId,
+          (item) => getLikeUserId(item) === getLikeUserId(currentUserLike),
         )
         ? [currentUserLike, ...current.likePreviewUsers].slice(0, 5)
         : current.likePreviewUsers
-      : current.likePreviewUsers.filter((item) => item.userId !== user?.id);
+      : current.likePreviewUsers.filter(
+          (item) => getLikeUserId(item) !== user?.id,
+        );
 
     setReactions((prev) => ({
       ...prev,
@@ -326,12 +340,23 @@ export default function TimeLinePosts() {
       {posts.map((post: Post) => {
         const baseLikesCount = post.likes?.length ?? post.likesCount ?? 0;
         const liveLikesCount = reactions[post.id]?.likesCount ?? baseLikesCount;
-        const overflowLikesCount = liveLikesCount > 5 ? liveLikesCount - 5 : 0;
-        const likePreviewUsers = (
-          reactions[post.id]?.likePreviewUsers ??
-          post.likes ??
-          []
-        ).slice(0, 5);
+        const reactionIcons = [
+          reactImage1,
+          reactImage2,
+          reactImage3,
+          reactImage4,
+          reactImage5,
+        ];
+        const liveLikePreviewUsers =
+          reactions[post.id]?.likePreviewUsers ?? post.likes ?? [];
+        const visibleReactionCount = Math.min(
+          liveLikesCount,
+          Math.max(liveLikePreviewUsers.length, reactionIcons.length),
+        );
+        const visibleReactionUsers = liveLikePreviewUsers.slice(
+          0,
+          visibleReactionCount,
+        );
 
         return (
           <div
@@ -585,37 +610,42 @@ export default function TimeLinePosts() {
                 <div className="_feed_inner_timeline_total_reacts_image">
                   {liveLikesCount > 0 && (
                     <>
-                      {likePreviewUsers.length > 0 ? (
-                        likePreviewUsers.map((likeItem, index) => (
-                          <img
-                            key={`${post.id}-${likeItem.userId}-${index}`}
-                            src={
-                              likeItem.user?.profile_image ||
-                              (index === 0 ? reactImage1 : reactImage2)
-                            }
-                            alt={likeItem.user?.name || "User"}
-                            className={
-                              index === 0 ? "_react_img1" : "_react_img"
-                            }
-                          />
-                        ))
-                      ) : (
-                        <>
-                          <img
-                            src={reactImage1}
-                            alt="Image"
-                            className="_react_img1"
-                          />
-                          <img
-                            src={reactImage2}
-                            alt="Image"
-                            className="_react_img"
-                          />
-                        </>
+                      {Array.from({ length: visibleReactionCount }).map(
+                        (_, index) => {
+                          const likeUser = visibleReactionUsers[index];
+                          const likeUserId = likeUser
+                            ? getLikeUserId(likeUser)
+                            : "";
+
+                          return (
+                            <img
+                              key={`${post.id}-reaction-${likeUserId || index}`}
+                              src={
+                                likeUser?.user?.profile_image ||
+                                reactionIcons[index]
+                              }
+                              alt="Image"
+                              className={
+                                index === 0
+                                  ? "_react_img1"
+                                  : index >= 2
+                                    ? "_react_img _rect_img_mbl_none"
+                                    : "_react_img"
+                              }
+                              style={{
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                              }}
+                            />
+                          );
+                        },
                       )}
-                      {overflowLikesCount > 0 && (
+                      {liveLikesCount > 5 && (
                         <p className="_feed_inner_timeline_total_reacts_para">
-                          {overflowLikesCount}
+                          {liveLikesCount > 5
+                            ? `${liveLikesCount}+`
+                            : liveLikesCount}
                         </p>
                       )}
                     </>
