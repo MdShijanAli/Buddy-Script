@@ -1,38 +1,125 @@
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { toast } from "react-toastify";
 import type { Comment } from "../../store/api/commentsApi";
-import { getAvatar, getDisplayName, getRelativeTime } from "./utils";
+import { useCreateCommentMutation } from "../../store/api/commentsApi";
+import { getDisplayName, getRelativeTime } from "./utils";
+import type { User } from "../../store/api/authApi";
 
 interface PostCommentsSectionProps {
+  postId: string;
   isLoading: boolean;
   comments: Comment[];
-  currentUserAvatar?: string | null;
-  fallbackAvatar: string;
-  commentImage: string;
+  currentUser: User | null;
+  onCommentCreated?: () => void;
 }
 
 export default function PostCommentsSection({
+  postId,
   isLoading,
   comments,
-  currentUserAvatar,
-  fallbackAvatar,
-  commentImage,
+  currentUser,
+  onCommentCreated,
 }: PostCommentsSectionProps) {
+  const [content, setContent] = useState("");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [createComment, { isLoading: isCreatingComment }] =
+    useCreateCommentMutation();
+
+  const clearSelectedImage = () => {
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setImagePreviewUrl(null);
+    setSelectedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleImagePick = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+
+    setSelectedImage(file);
+    setImagePreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleSubmitComment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedContent = content.trim();
+    if (!trimmedContent && !selectedImage) {
+      return;
+    }
+
+    try {
+      await createComment({
+        postId,
+        data: {
+          content: trimmedContent,
+          imageFile: selectedImage,
+        },
+      }).unwrap();
+
+      setContent("");
+      clearSelectedImage();
+      onCommentCreated?.();
+      toast.success("Comment added");
+    } catch {
+      toast.error("Unable to add comment right now.");
+    }
+  };
+
+  console.log("Current User", currentUser);
+
   return (
     <>
       <div className="_feed_inner_timeline_cooment_area">
         <div className="_feed_inner_comment_box">
-          <form className="_feed_inner_comment_box_form">
+          <form
+            className="_feed_inner_comment_box_form"
+            onSubmit={handleSubmitComment}
+          >
             <div className="_feed_inner_comment_box_content">
               <div className="_feed_inner_comment_box_content_image">
-                <img
-                  src={getAvatar(currentUserAvatar, fallbackAvatar)}
-                  alt=""
-                  className="_comment_img"
-                />
+                {currentUser?.profile_image || currentUser?.profileImage ? (
+                  <img
+                    src={currentUser.profile_image || currentUser.profileImage}
+                    alt=""
+                    className="_comment_img"
+                  />
+                ) : (
+                  <div
+                    className="_post_img"
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "50%",
+                      backgroundColor: "#e0e0e0",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      color: "#666",
+                    }}
+                  >
+                    {currentUser?.name?.[0]?.toUpperCase() || "U"}
+                  </div>
+                )}
               </div>
               <div className="_feed_inner_comment_box_content_txt">
                 <textarea
                   className="form-control _comment_textarea"
                   placeholder="Write a comment"
+                  value={content}
+                  onChange={(event) => setContent(event.target.value)}
                 />
               </div>
             </div>
@@ -60,6 +147,7 @@ export default function PostCommentsSection({
               <button
                 type="button"
                 className="_feed_inner_comment_box_icon_btn"
+                onClick={() => fileInputRef.current?.click()}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -77,8 +165,89 @@ export default function PostCommentsSection({
                   />
                 </svg>
               </button>
+              <button
+                type="submit"
+                className="_feed_inner_comment_box_icon_btn"
+                disabled={isCreatingComment}
+                title="Post comment"
+                style={{
+                  background: "#377DFF",
+                  color: "#fff",
+                  borderRadius: "8px",
+                  padding: "6px 14px",
+                  minWidth: "64px",
+                  fontWeight: 600,
+                  border: "1px solid #377DFF",
+                }}
+              >
+                {isCreatingComment ? "..." : "Post"}
+              </button>
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleImagePick}
+            />
           </form>
+
+          {imagePreviewUrl && (
+            <div
+              style={{
+                marginTop: "10px",
+                position: "relative",
+                width: "100%",
+                maxWidth: "120px",
+              }}
+            >
+              <img
+                src={imagePreviewUrl}
+                alt="Selected comment"
+                style={{
+                  width: "100%",
+                  maxWidth: "120px",
+                  borderRadius: "8px",
+                  objectFit: "cover",
+                }}
+              />
+              <button
+                type="button"
+                className="_feed_inner_comment_box_icon_btn"
+                onClick={clearSelectedImage}
+                title="Remove image"
+                style={{
+                  position: "absolute",
+                  top: "6px",
+                  right: "6px",
+                  width: "24px",
+                  height: "24px",
+                  borderRadius: "50%",
+                  border: "none",
+                  background: "rgba(0, 0, 0, 0.55)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 0,
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  fill="none"
+                  viewBox="0 0 12 12"
+                >
+                  <path
+                    d="M2 2l8 8M10 2L2 10"
+                    stroke="#fff"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -114,14 +283,31 @@ export default function PostCommentsSection({
             <div key={comment.id} className="_comment_main">
               <div className="_comment_image">
                 <a href="#0" className="_comment_image_link">
-                  <img
-                    src={getAvatar(
-                      comment.author?.profile_image || comment.userAvatar,
-                      fallbackAvatar,
-                    )}
-                    alt=""
-                    className="_comment_img1"
-                  />
+                  {comment.author?.profile_image ? (
+                    <img
+                      src={comment.author?.profile_image}
+                      alt=""
+                      className="_comment_img1"
+                    />
+                  ) : (
+                    <div
+                      className="_post_img"
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "50%",
+                        backgroundColor: "#e0e0e0",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        color: "#666",
+                      }}
+                    >
+                      {comment.author?.name?.[0]?.toUpperCase() || "U"}
+                    </div>
+                  )}
                 </a>
               </div>
 
@@ -177,14 +363,31 @@ export default function PostCommentsSection({
                   >
                     <div className="_comment_image">
                       <a href="#0" className="_comment_image_link">
-                        <img
-                          src={getAvatar(
-                            reply.author?.profile_image || reply.userAvatar,
-                            fallbackAvatar,
-                          )}
-                          alt=""
-                          className="_comment_img1"
-                        />
+                        {reply.author?.profile_image ? (
+                          <img
+                            src={reply.author?.profile_image}
+                            alt=""
+                            className="_comment_img1"
+                          />
+                        ) : (
+                          <div
+                            className="_post_img"
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              borderRadius: "50%",
+                              backgroundColor: "#e0e0e0",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "16px",
+                              fontWeight: "bold",
+                              color: "#666",
+                            }}
+                          >
+                            {reply.author?.name?.[0]?.toUpperCase() || "U"}
+                          </div>
+                        )}
                       </a>
                     </div>
                     <div className="_comment_area">
@@ -217,11 +420,35 @@ export default function PostCommentsSection({
                   <form className="_feed_inner_comment_box_form">
                     <div className="_feed_inner_comment_box_content">
                       <div className="_feed_inner_comment_box_content_image">
-                        <img
-                          src={commentImage}
-                          alt=""
-                          className="_comment_img"
-                        />
+                        {currentUser?.profile_image ||
+                        currentUser?.profileImage ? (
+                          <img
+                            src={
+                              currentUser?.profile_image ||
+                              currentUser?.profileImage
+                            }
+                            alt=""
+                            className="_comment_img"
+                          />
+                        ) : (
+                          <div
+                            className="_post_img"
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              borderRadius: "50%",
+                              backgroundColor: "#e0e0e0",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "16px",
+                              fontWeight: "bold",
+                              color: "#666",
+                            }}
+                          >
+                            {currentUser?.name?.[0]?.toUpperCase() || "U"}
+                          </div>
+                        )}
                       </div>
                       <div className="_feed_inner_comment_box_content_txt">
                         <textarea

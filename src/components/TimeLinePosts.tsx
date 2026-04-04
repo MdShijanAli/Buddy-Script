@@ -1,6 +1,5 @@
 import reactImage1 from "../assets/images/react_img1.png";
 import reactImage2 from "../assets/images/react_img2.png";
-import commentImage from "../assets/images/comment_img.png";
 import commentAuthorFallbackImage from "../assets/images/txt_img.png";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -77,6 +76,10 @@ export default function TimeLinePosts() {
         profile_image: user.profile_image || user.profileImage || null,
       },
     };
+  }, [user]);
+
+  const commentImage = useMemo(() => {
+    return user?.profile_image || user?.profileImage || null;
   }, [user]);
 
   useEffect(() => {
@@ -643,13 +646,13 @@ export default function TimeLinePosts() {
 
             {expandedCommentsByPost[post.id] && (
               <PostCommentsSection
+                postId={post.id}
                 isLoading={!!commentsLoadingByPost[post.id]}
                 comments={commentsByPost[post.id] ?? []}
-                currentUserAvatar={
-                  user?.profile_image || user?.profileImage || null
-                }
-                fallbackAvatar={commentAuthorFallbackImage}
-                commentImage={commentImage}
+                currentUser={user}
+                onCommentCreated={() => {
+                  void loadCommentsAndReplies(post.id);
+                }}
               />
             )}
           </div>

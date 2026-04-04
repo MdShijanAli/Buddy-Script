@@ -46,6 +46,7 @@ export interface CommentReply {
 
 export interface CreateCommentRequest {
   content: string;
+  imageFile?: File | null;
 }
 
 export interface UpdateCommentRequest {
@@ -73,11 +74,20 @@ export const commentsApi = createApi({
       Comment,
       { postId: string; data: CreateCommentRequest }
     >({
-      query: ({ postId, data }) => ({
-        url: apiRoutes.comment.createComment(postId),
-        method: "POST",
-        body: data,
-      }),
+      query: ({ postId, data }) => {
+        const formData = new FormData();
+        formData.append("content", data.content);
+
+        if (data.imageFile) {
+          formData.append("imageUrl", data.imageFile);
+        }
+
+        return {
+          url: apiRoutes.comment.createComment(postId),
+          method: "POST",
+          body: formData,
+        };
+      },
       invalidatesTags: (_result, _error, { postId }) => [
         { type: "Comments", id: postId },
       ],
