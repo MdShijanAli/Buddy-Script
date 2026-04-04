@@ -1,6 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { apiRoutes } from "../../api/apiRoutes";
-import type { RootState } from "../store";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 
 export interface Reply {
   id: string;
@@ -25,17 +25,7 @@ export interface UpdateReplyRequest {
 
 export const repliesApi = createApi({
   reducerPath: "repliesApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL || "",
-    prepareHeaders: (headers, { getState }) => {
-      const state = getState() as RootState;
-      const token = state.auth.token;
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ["Replies"],
   endpoints: (builder) => ({
     getCommentReplies: builder.query<Reply[], string>({

@@ -1,6 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { apiRoutes } from "../../api/apiRoutes";
-import type { RootState } from "../store";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 
 export interface Like {
   id: string;
@@ -12,17 +12,7 @@ export interface Like {
 
 export const likesApi = createApi({
   reducerPath: "likesApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL || "",
-    prepareHeaders: (headers, { getState }) => {
-      const state = getState() as RootState;
-      const token = state.auth.token;
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ["Likes"],
   endpoints: (builder) => ({
     getPostLikes: builder.query<Like[], string>({

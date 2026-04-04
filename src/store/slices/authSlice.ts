@@ -74,6 +74,27 @@ const authSlice = createSlice({
       }
     },
 
+    setTokens: (
+      state,
+      action: PayloadAction<{
+        token: string;
+        refreshToken?: string;
+      }>,
+    ) => {
+      state.token = action.payload.token;
+      state.isAuthenticated = !!action.payload.token;
+      localStorage.setItem("authToken", action.payload.token);
+
+      if (typeof action.payload.refreshToken !== "undefined") {
+        state.refreshToken = action.payload.refreshToken;
+        if (action.payload.refreshToken) {
+          localStorage.setItem("refreshToken", action.payload.refreshToken);
+        } else {
+          localStorage.removeItem("refreshToken");
+        }
+      }
+    },
+
     logout: (state) => {
       state.user = null;
       state.token = null;
@@ -95,7 +116,13 @@ const authSlice = createSlice({
   },
 });
 
-export const { loginSuccess, registerSuccess, logout, clearError, setError } =
-  authSlice.actions;
+export const {
+  loginSuccess,
+  registerSuccess,
+  setTokens,
+  logout,
+  clearError,
+  setError,
+} = authSlice.actions;
 
 export default authSlice.reducer;

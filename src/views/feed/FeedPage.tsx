@@ -2,7 +2,7 @@ import { useDarkMode } from "../../hooks";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../../store/store";
 import { logout } from "../../store/slices/authSlice";
-import authService from "../../services/authService";
+import { useLogoutMutation } from "../../store/api/authApi";
 import Header from "../../components/Header";
 import LeftSidebar from "../../components/LeftSidebar";
 import FeedMiddle from "../../components/FeedMiddle";
@@ -13,10 +13,11 @@ export default function FeedPage() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const [logoutUser] = useLogoutMutation();
 
   const handleLogout = async () => {
     try {
-      await authService.signout();
+      await logoutUser().unwrap();
       dispatch(logout());
       navigate("/login");
     } catch (error) {
