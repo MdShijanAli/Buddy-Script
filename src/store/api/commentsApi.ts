@@ -2,6 +2,11 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { apiRoutes } from "../../api/apiRoutes";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
 
+interface LikeUserRef {
+  id: string;
+  userId: string;
+}
+
 export interface Comment {
   id: string;
   content: string;
@@ -15,6 +20,7 @@ export interface Comment {
   likesCount?: number;
   repliesCount?: number;
   liked?: boolean;
+  likes?: LikeUserRef[];
   author?: {
     id: string;
     email?: string;
@@ -32,6 +38,7 @@ export interface CommentReply {
   content: string;
   imageUrl?: string | null;
   likesCount?: number;
+  likes?: LikeUserRef[];
   createdAt: string;
   updatedAt?: string;
   userName?: string;

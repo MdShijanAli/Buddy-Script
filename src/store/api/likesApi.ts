@@ -91,7 +91,9 @@ export const {
   useLikePostMutation,
   useUnlikePostMutation,
   useGetCommentLikesQuery,
+  useLazyGetCommentLikesQuery,
   useLikeCommentMutation,
   useGetReplyLikesQuery,
+  useLazyGetReplyLikesQuery,
   useLikeReplyMutation,
 } = likesApi;
