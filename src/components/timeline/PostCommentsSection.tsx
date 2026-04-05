@@ -8,6 +8,7 @@ import {
 import { toast } from "react-toastify";
 import type { Comment } from "../../store/api/commentsApi";
 import { useCreateCommentMutation } from "../../store/api/commentsApi";
+import { useCreateReplyMutation } from "../../store/api/repliesApi";
 import { getDisplayName, getRelativeTime } from "./utils";
 import type { User } from "../../store/api/authApi";
 
@@ -27,11 +28,17 @@ export default function PostCommentsSection({
   onCommentCreated,
 }: PostCommentsSectionProps) {
   const [content, setContent] = useState("");
+  const [replyContent, setReplyContent] = useState("");
+  const [activeReplyCommentId, setActiveReplyCommentId] = useState<
+    string | null
+  >(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [createComment, { isLoading: isCreatingComment }] =
     useCreateCommentMutation();
+  const [createReply, { isLoading: isCreatingReply }] =
+    useCreateReplyMutation();
 
   const clearSelectedImage = () => {
     if (imagePreviewUrl) {
@@ -79,6 +86,48 @@ export default function PostCommentsSection({
       toast.success("Comment added");
     } catch {
       toast.error("Unable to add comment right now.");
+    }
+  };
+
+  const openReplyComposer = (commentId: string) => {
+    setActiveReplyCommentId(commentId);
+    setReplyContent("");
+  };
+
+  const closeReplyComposer = () => {
+    setActiveReplyCommentId(null);
+    setReplyContent("");
+  };
+
+  const handleSubmitReply = async (
+    event: FormEvent<HTMLFormElement>,
+    commentId: string,
+  ) => {
+    event.preventDefault();
+
+    const trimmedContent = replyContent.trim();
+    if (!trimmedContent) {
+      return;
+    }
+
+    try {
+      await createReply({
+        commentId,
+        data: { content: trimmedContent },
+      }).unwrap();
+
+      closeReplyComposer();
+      onCommentCreated?.();
+      toast.success("Reply added");
+    } catch {
+      toast.error("Unable to add reply right now.");
+    }
+  };
+
+  const handleReplyKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
     }
   };
 
@@ -409,7 +458,26 @@ export default function PostCommentsSection({
                           <span>Like.</span>
                         </li>
                         <li>
-                          <span>Reply.</span>
+                          <button
+                            type="button"
+                            className="_comment_action_btn"
+                            onClick={() =>
+                              activeReplyCommentId === comment.id
+                                ? closeReplyComposer()
+                                : openReplyComposer(comment.id)
+                            }
+                            style={{
+                              border: "none",
+                              background: "transparent",
+                              padding: 0,
+                              fontWeight: 600,
+                              color: "#0d6efd",
+                            }}
+                          >
+                            {activeReplyCommentId === comment.id
+                              ? "Cancel reply"
+                              : "Reply"}
+                          </button>
                         </li>
                         <li>
                           <span>Share</span>
@@ -542,52 +610,81 @@ export default function PostCommentsSection({
                   </div>
                 ))}
 
-                <div
-                  className="_feed_inner_comment_box"
-                  style={{ marginBottom: "16px" }}
-                >
-                  <form className="_feed_inner_comment_box_form">
-                    <div className="_feed_inner_comment_box_content">
-                      <div className="_feed_inner_comment_box_content_image">
-                        {currentUser?.profile_image ||
-                        currentUser?.profileImage ? (
-                          <img
-                            src={
-                              currentUser?.profile_image ||
-                              currentUser?.profileImage
+                {activeReplyCommentId === comment.id && (
+                  <div
+                    className="_feed_inner_comment_box"
+                    style={{ marginBottom: "16px" }}
+                  >
+                    <form
+                      className="_feed_inner_comment_box_form"
+                      onSubmit={(event) => handleSubmitReply(event, comment.id)}
+                    >
+                      <div className="_feed_inner_comment_box_content">
+                        <div className="_feed_inner_comment_box_content_image">
+                          {currentUser?.profile_image ||
+                          currentUser?.profileImage ? (
+                            <img
+                              src={
+                                currentUser?.profile_image ||
+                                currentUser?.profileImage
+                              }
+                              alt=""
+                              className="_comment_img"
+                            />
+                          ) : (
+                            <div
+                              className="_post_img"
+                              style={{
+                                width: "40px",
+                                height: "40px",
+                                borderRadius: "50%",
+                                backgroundColor: "#e0e0e0",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "16px",
+                                fontWeight: "bold",
+                                color: "#666",
+                              }}
+                            >
+                              {currentUser?.name?.[0]?.toUpperCase() || "U"}
+                            </div>
+                          )}
+                        </div>
+                        <div className="_feed_inner_comment_box_content_txt">
+                          <textarea
+                            className="form-control _comment_textarea"
+                            placeholder="Write a reply"
+                            value={replyContent}
+                            onChange={(event) =>
+                              setReplyContent(event.target.value)
                             }
-                            alt=""
-                            className="_comment_img"
+                            onKeyDown={handleReplyKeyDown}
                           />
-                        ) : (
-                          <div
-                            className="_post_img"
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                              borderRadius: "50%",
-                              backgroundColor: "#e0e0e0",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "16px",
-                              fontWeight: "bold",
-                              color: "#666",
-                            }}
-                          >
-                            {currentUser?.name?.[0]?.toUpperCase() || "U"}
-                          </div>
-                        )}
+                        </div>
                       </div>
-                      <div className="_feed_inner_comment_box_content_txt">
-                        <textarea
-                          className="form-control _comment_textarea"
-                          placeholder="Write a comment"
-                        />
+                      <div className="_feed_inner_comment_box_icon">
+                        <button
+                          type="button"
+                          className="_feed_inner_comment_box_icon_btn"
+                          onClick={closeReplyComposer}
+                          disabled={isCreatingReply}
+                          style={{ width: "auto", padding: "0 12px" }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="_feed_inner_comment_box_icon_btn"
+                          disabled={isCreatingReply}
+                          style={{ width: "auto", padding: "0 12px" }}
+                        >
+                          Reply
+                        </button>
                       </div>
-                    </div>
-                  </form>
-                </div>
+                    </form>
+                  </div>
+                )}
               </div>
             </div>
           );
