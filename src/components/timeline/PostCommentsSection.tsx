@@ -448,7 +448,7 @@ export default function PostCommentsSection({
                         </svg>
                       </span>
                     </div>
-                    <span className="_total">198</span>
+                    <span className="_total">{comment.likesCount ?? 0}</span>
                   </div>
 
                   <div className="_comment_reply">
