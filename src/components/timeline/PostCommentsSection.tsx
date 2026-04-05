@@ -1,4 +1,10 @@
-import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
 import { toast } from "react-toastify";
 import type { Comment } from "../../store/api/commentsApi";
 import { useCreateCommentMutation } from "../../store/api/commentsApi";
@@ -76,7 +82,12 @@ export default function PostCommentsSection({
     }
   };
 
-  console.log("Current User", currentUser);
+  const handleComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
+    }
+  };
 
   return (
     <>
@@ -120,13 +131,15 @@ export default function PostCommentsSection({
                   placeholder="Write a comment"
                   value={content}
                   onChange={(event) => setContent(event.target.value)}
+                  onKeyDown={handleComposerKeyDown}
                 />
               </div>
             </div>
             <div className="_feed_inner_comment_box_icon">
               <button
-                type="button"
+                type="submit"
                 className="_feed_inner_comment_box_icon_btn"
+                disabled={isCreatingComment}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -164,23 +177,6 @@ export default function PostCommentsSection({
                     clipRule="evenodd"
                   />
                 </svg>
-              </button>
-              <button
-                type="submit"
-                className="_feed_inner_comment_box_icon_btn"
-                disabled={isCreatingComment}
-                title="Post comment"
-                style={{
-                  background: "#377DFF",
-                  color: "#fff",
-                  borderRadius: "8px",
-                  padding: "6px 14px",
-                  minWidth: "64px",
-                  fontWeight: 600,
-                  border: "1px solid #377DFF",
-                }}
-              >
-                {isCreatingComment ? "..." : "Post"}
               </button>
             </div>
             <input
@@ -330,11 +326,81 @@ export default function PostCommentsSection({
                     </p>
                   </div>
 
-                  {!!comment.likesCount && (
-                    <div className="_total_reactions">
-                      <span className="_total">{comment.likesCount}</span>
+                  {/* <div className="_total_reactions">
+                    <div className="_total_react">
+                      <span className="_reaction_like">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-thumbs-up"
+                        >
+                          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                        </svg>
+                      </span>
+                      <span className="_reaction_heart">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="feather feather-heart"
+                        >
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                      </span>
                     </div>
-                  )}
+                    <span className="_total">{comment.likesCount ?? 0}</span>
+                  </div> */}
+
+                  <div className="_total_reactions">
+                    <div className="_total_react">
+                      <span className="_reaction_like">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          className="feather feather-thumbs-up"
+                        >
+                          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                        </svg>
+                      </span>
+                      <span className="_reaction_heart">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          className="feather feather-heart"
+                        >
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                      </span>
+                    </div>
+                    <span className="_total">198</span>
+                  </div>
 
                   <div className="_comment_reply">
                     <div className="_comment_reply_num">
@@ -344,6 +410,9 @@ export default function PostCommentsSection({
                         </li>
                         <li>
                           <span>Reply.</span>
+                        </li>
+                        <li>
+                          <span>Share</span>
                         </li>
                         <li>
                           <span className="_time_link">
@@ -407,6 +476,66 @@ export default function PostCommentsSection({
                           <p className="_comment_status_text">
                             <span>{reply.content}</span>
                           </p>
+                        </div>
+
+                        <div className="_total_reactions">
+                          <div className="_total_react">
+                            <span className="_reaction_like">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="feather feather-thumbs-up"
+                              >
+                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                              </svg>
+                            </span>
+                            <span className="_reaction_heart">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="feather feather-heart"
+                              >
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                              </svg>
+                            </span>
+                          </div>
+                          <span className="_total">
+                            {reply.likesCount ?? 0}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="_comment_reply">
+                        <div className="_comment_reply_num">
+                          <ul className="_comment_reply_list">
+                            <li>
+                              <span>Like.</span>
+                            </li>
+                            <li>
+                              <span>Reply.</span>
+                            </li>
+                            <li>
+                              <span>Share</span>
+                            </li>
+                            <li>
+                              <span className="_time_link">
+                                .{getRelativeTime(reply.createdAt)}
+                              </span>
+                            </li>
+                          </ul>
                         </div>
                       </div>
                     </div>
