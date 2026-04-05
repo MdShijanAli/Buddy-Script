@@ -669,7 +669,17 @@ export default function PostCommentsSection({
                           className="_feed_inner_comment_box_icon_btn"
                           onClick={closeReplyComposer}
                           disabled={isCreatingReply}
-                          style={{ width: "auto", padding: "0 12px" }}
+                          style={{
+                            width: "auto",
+                            padding: "0 14px",
+                            height: "34px",
+                            borderRadius: "999px",
+                            border: "1px solid #d0d7de",
+                            background: "#ffffff",
+                            color: "#344054",
+                            fontWeight: 600,
+                            boxShadow: "0 1px 2px rgba(16, 24, 40, 0.06)",
+                          }}
                         >
                           Cancel
                         </button>
@@ -677,7 +687,19 @@ export default function PostCommentsSection({
                           type="submit"
                           className="_feed_inner_comment_box_icon_btn"
                           disabled={isCreatingReply}
-                          style={{ width: "auto", padding: "0 12px" }}
+                          style={{
+                            width: "auto",
+                            padding: "0 16px",
+                            height: "34px",
+                            borderRadius: "999px",
+                            border: "1px solid #1457d6",
+                            background:
+                              "linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)",
+                            color: "#fff",
+                            fontWeight: 700,
+                            letterSpacing: "0.2px",
+                            boxShadow: "0 8px 16px rgba(29, 78, 216, 0.28)",
+                          }}
                         >
                           Reply
                         </button>

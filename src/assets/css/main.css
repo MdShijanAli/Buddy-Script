@@ -6027,9 +6027,9 @@
     color:var(--color7);
     white-space: nowrap;
 }
-._comment_reply_list li:last-child {
+/* ._comment_reply_list li:last-child {
     margin-left: auto;
-}
+} */
 ._previous_comment {
     margin:0 0 20px;
 }
