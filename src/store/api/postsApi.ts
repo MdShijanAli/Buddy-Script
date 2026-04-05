@@ -10,7 +10,9 @@ export interface Author {
 }
 
 export interface PostLike {
+  id?: string;
   userId: string;
+  postId?: string;
   user?: {
     id: string;
     email: string;

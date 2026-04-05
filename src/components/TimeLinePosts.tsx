@@ -81,6 +81,18 @@ export default function TimeLinePosts() {
   }, [user]);
 
   const getLikeUserId = (like: PostLike) => like.userId || like.user?.id || "";
+  const getLikeDisplayName = (like: PostLike) => {
+    const likeUserId = getLikeUserId(like);
+    if (user?.id && likeUserId === user.id) {
+      return user.name || user.firstName || "You";
+    }
+
+    return like.user?.name || "User";
+  };
+  const getCurrentUserPostLikeId = (likes?: PostLike[]) =>
+    user?.id
+      ? likes?.find((item) => getLikeUserId(item) === user.id)?.id
+      : undefined;
 
   useEffect(() => {
     if (!posts) return;
@@ -114,7 +126,8 @@ export default function TimeLinePosts() {
           likesCount: current?.pending
             ? current.likesCount
             : likesCountFromResponse,
-          likeId: current?.likeId,
+          likeId:
+            current?.likeId ?? getCurrentUserPostLikeId(likeUsersFromResponse),
           pending: current?.pending ?? false,
           likePreviewUsers: current?.pending
             ? current.likePreviewUsers
@@ -126,14 +139,20 @@ export default function TimeLinePosts() {
   }, [posts, user?.id, currentUserLike]);
 
   const handleLike = async (postId: string) => {
+    const postFromData = posts?.find((item) => item.id === postId);
+
     const current =
       reactions[postId] ??
       ({
-        liked: false,
-        likesCount: 0,
-        likeId: undefined,
+        liked: Boolean(
+          user?.id &&
+          postFromData?.likes?.some((item) => getLikeUserId(item) === user.id),
+        ),
+        likesCount:
+          postFromData?.likes?.length ?? postFromData?.likesCount ?? 0,
+        likeId: getCurrentUserPostLikeId(postFromData?.likes),
         pending: false,
-        likePreviewUsers: [],
+        likePreviewUsers: postFromData?.likes ?? [],
       } as {
         liked: boolean;
         likesCount: number;
@@ -188,10 +207,15 @@ export default function TimeLinePosts() {
 
       let likeId = current.likeId;
       if (!likeId && user?.id) {
-        const postLikes = await getPostLikes(postId).unwrap();
-        likeId = postLikes.find(
-          (item) => item.userId === user.id && item.postId === postId,
-        )?.id;
+        const postLikesResponse = await getPostLikes(postId).unwrap();
+        const postLikes = Array.isArray(postLikesResponse)
+          ? postLikesResponse
+          : ((
+              postLikesResponse as {
+                likes?: Array<{ id: string; userId: string; postId?: string }>;
+              }
+            ).likes ?? []);
+        likeId = postLikes.find((item) => item.userId === user.id)?.id;
       }
 
       if (!likeId) {
@@ -616,15 +640,17 @@ export default function TimeLinePosts() {
                           const likeUserId = likeUser
                             ? getLikeUserId(likeUser)
                             : "";
+                          const likeUserName = likeUser
+                            ? getLikeDisplayName(likeUser)
+                            : "User";
+                          const likeUserAvatar =
+                            likeUser?.user?.profile_image || null;
 
-                          return (
+                          return likeUserAvatar ? (
                             <img
                               key={`${post.id}-reaction-${likeUserId || index}`}
-                              src={
-                                likeUser?.user?.profile_image ||
-                                reactionIcons[index]
-                              }
-                              alt="Image"
+                              src={likeUserAvatar}
+                              alt={likeUserName}
                               className={
                                 index === 0
                                   ? "_react_img1"
@@ -636,8 +662,35 @@ export default function TimeLinePosts() {
                                 width: "30px",
                                 height: "30px",
                                 borderRadius: "50%",
+                                objectFit: "cover",
                               }}
                             />
+                          ) : (
+                            <div
+                              key={`${post.id}-reaction-${likeUserId || index}`}
+                              className={
+                                index === 0
+                                  ? "_react_img1"
+                                  : index >= 2
+                                    ? "_react_img _rect_img_mbl_none"
+                                    : "_react_img"
+                              }
+                              style={{
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                                backgroundColor: "#dbeafe",
+                                color: "#1e3a8a",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "12px",
+                                fontWeight: 700,
+                              }}
+                              title={likeUserName}
+                            >
+                              {likeUserName[0]?.toUpperCase() || "U"}
+                            </div>
                           );
                         },
                       )}
