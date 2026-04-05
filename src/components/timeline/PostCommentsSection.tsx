@@ -511,7 +511,14 @@ export default function PostCommentsSection({
                   <img
                     src={currentUser.profile_image || currentUser.profileImage}
                     alt=""
-                    className="_comment_img"
+                    className="_comment_img1"
+                    style={{
+                      width: "30px",
+                      height: "30px",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      objectPosition: "top",
+                    }}
                   />
                 ) : (
                   <div
@@ -706,6 +713,13 @@ export default function PostCommentsSection({
                       src={comment.author?.profile_image}
                       alt=""
                       className="_comment_img1"
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        objectPosition: "top",
+                      }}
                     />
                   ) : (
                     <div
@@ -890,6 +904,13 @@ export default function PostCommentsSection({
                                 src={reply.author?.profile_image}
                                 alt=""
                                 className="_comment_img1"
+                                style={{
+                                  width: "30px",
+                                  height: "30px",
+                                  borderRadius: "50%",
+                                  objectFit: "cover",
+                                  objectPosition: "top",
+                                }}
                               />
                             ) : (
                               <div
@@ -1024,14 +1045,21 @@ export default function PostCommentsSection({
                                 currentUser?.profileImage
                               }
                               alt=""
-                              className="_comment_img"
+                              className="_comment_img1"
+                              style={{
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                                objectFit: "cover",
+                                objectPosition: "top",
+                              }}
                             />
                           ) : (
                             <div
                               className="_post_img"
                               style={{
-                                width: "40px",
-                                height: "40px",
+                                width: "30px",
+                                height: "30px",
                                 borderRadius: "50%",
                                 backgroundColor: "#e0e0e0",
                                 display: "flex",

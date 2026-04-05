@@ -401,6 +401,7 @@ export default function TimeLinePosts() {
                           height: "40px",
                           borderRadius: "50%",
                           objectFit: "cover",
+                          objectPosition: "top",
                         }}
                       />
                     ) : (
@@ -663,6 +664,7 @@ export default function TimeLinePosts() {
                                 height: "30px",
                                 borderRadius: "50%",
                                 objectFit: "cover",
+                                objectPosition: "top",
                               }}
                             />
                           ) : (
