@@ -51,6 +51,7 @@ export interface UpdatePostRequest {
   content: string;
   imageFile?: File | null;
   removeImage?: boolean;
+  visibility?: "PUBLIC" | "PRIVATE";
 }
 
 export const postsApi = createApi({
@@ -99,9 +100,12 @@ export const postsApi = createApi({
     }),
 
     updatePost: builder.mutation<Post, UpdatePostRequest>({
-      query: ({ postId, content, imageFile, removeImage }) => {
+      query: ({ postId, content, imageFile, removeImage, visibility }) => {
         const formData = new FormData();
         formData.append("content", content);
+        if (visibility) {
+          formData.append("visibility", visibility);
+        }
         if (removeImage) {
           formData.append("removeImage", "true");
         } else if (imageFile) {

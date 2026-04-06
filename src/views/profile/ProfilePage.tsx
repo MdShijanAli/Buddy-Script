@@ -44,11 +44,27 @@ export default function ProfilePage() {
     useState<string | null>(null);
   const profileImageInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: profileData, isFetching } = useGetProfileQuery();
+  const { data: profileData, isFetching } = useGetProfileQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
 
   const profileUser = useMemo(() => {
-    return profileData?.user || profileData?.data || user;
+    const profileFromApi = profileData?.user || profileData?.data;
+
+    // Prevent rendering stale cached data from a different account.
+    if (
+      profileFromApi &&
+      user?.id &&
+      profileFromApi.id &&
+      profileFromApi.id !== user.id
+    ) {
+      return user;
+    }
+
+    return profileFromApi || user;
   }, [profileData?.data, profileData?.user, user]);
 
   const profileName =

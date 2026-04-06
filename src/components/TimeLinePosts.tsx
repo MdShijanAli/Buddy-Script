@@ -55,6 +55,9 @@ export default function TimeLinePosts({ variant = "all" }: TimeLinePostsProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [editPostId, setEditPostId] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [visibilityUpdatingByPost, setVisibilityUpdatingByPost] = useState<
+    Record<string, boolean>
+  >({});
   const [expandedCommentsByPost, setExpandedCommentsByPost] = useState<
     Record<string, boolean>
   >({});
@@ -105,6 +108,19 @@ export default function TimeLinePosts({ variant = "all" }: TimeLinePostsProps) {
   }, [user]);
 
   const getLikeUserId = (like: PostLike) => like.userId || like.user?.id || "";
+  const normalizeVisibility = (visibility?: string) =>
+    (visibility || "PUBLIC").toUpperCase();
+  const formatVisibilityLabel = (visibility?: string) =>
+    normalizeVisibility(visibility) === "PRIVATE" ? "Private" : "Public";
+  const isPostOwner = (post: Post) =>
+    post.authorId === user?.id || post.userId === user?.id;
+
+  const visiblePosts = (posts ?? []).filter((post) => {
+    if (shouldLoadMyPosts) return true;
+    if (isPostOwner(post)) return true;
+    return normalizeVisibility(post.visibility) === "PUBLIC";
+  });
+
   const getLikeDisplayName = (like: PostLike) => {
     const likeUserId = getLikeUserId(like);
     if (user?.id && likeUserId === user.id) {
@@ -352,6 +368,44 @@ export default function TimeLinePosts({ variant = "all" }: TimeLinePostsProps) {
     }
   };
 
+  const handleToggleVisibility = async (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    post: Post,
+  ) => {
+    event.preventDefault();
+
+    if (visibilityUpdatingByPost[post.id]) return;
+
+    const currentVisibility = normalizeVisibility(post.visibility);
+    const nextVisibility: "PUBLIC" | "PRIVATE" =
+      currentVisibility === "PRIVATE" ? "PUBLIC" : "PRIVATE";
+
+    setVisibilityUpdatingByPost((prev) => ({ ...prev, [post.id]: true }));
+    try {
+      await updatePost({
+        postId: post.id,
+        content: post.content,
+        visibility: nextVisibility,
+      }).unwrap();
+
+      toast.success(
+        nextVisibility === "PRIVATE"
+          ? "Post is now private"
+          : "Post is now public",
+      );
+      closeAllDropdowns();
+    } catch (err: any) {
+      toast.error(
+        err?.data?.error?.message ||
+          err?.data?.message ||
+          "Failed to update post visibility",
+      );
+    } finally {
+      setVisibilityUpdatingByPost((prev) => ({ ...prev, [post.id]: false }));
+      dispatch(postsApi.util.invalidateTags(["Posts", "MyPosts"]));
+    }
+  };
+
   const getEditingPost = () => {
     return posts?.find((post) => post.id === editPostId) || null;
   };
@@ -419,14 +473,14 @@ export default function TimeLinePosts({ variant = "all" }: TimeLinePostsProps) {
     );
   }
 
-  if (posts.length === 0) {
+  if (visiblePosts.length === 0) {
     return (
       <div className="_feed_inner_timeline_post_area _b_radious6 _padd_b24 _padd_t24 _mar_b16">
         <div className="_feed_inner_timeline_content _padd_r24 _padd_l24">
           <p>
             {shouldLoadMyPosts
               ? "You have not posted anything yet."
-              : "No posts available."}
+              : "No public posts available."}
           </p>
         </div>
       </div>
@@ -435,7 +489,7 @@ export default function TimeLinePosts({ variant = "all" }: TimeLinePostsProps) {
 
   return (
     <>
-      {posts.map((post: Post) => {
+      {visiblePosts.map((post: Post) => {
         const baseLikesCount = post.likes?.length ?? post.likesCount ?? 0;
         const liveLikesCount = reactions[post.id]?.likesCount ?? baseLikesCount;
         const reactionIcons = [
@@ -504,7 +558,7 @@ export default function TimeLinePosts({ variant = "all" }: TimeLinePostsProps) {
                     </h4>
                     <p className="_feed_inner_timeline_post_box_para">
                       {getRelativeTime(post.createdAt)} .
-                      <a href="#0">{post.visibility || "Public"}</a>
+                      <a href="#0">{formatVisibilityLabel(post.visibility)}</a>
                     </p>
                   </div>
                 </div>
@@ -624,8 +678,39 @@ export default function TimeLinePosts({ variant = "all" }: TimeLinePostsProps) {
                           Hide
                         </a>
                       </li>
-                      {post.authorId === user?.id && (
+                      {isPostOwner(post) && (
                         <>
+                          <li className="_feed_timeline_dropdown_item">
+                            <a
+                              href="#0"
+                              className="_feed_timeline_dropdown_link"
+                              onClick={(e) => handleToggleVisibility(e, post)}
+                            >
+                              <span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="18"
+                                  height="18"
+                                  fill="none"
+                                  viewBox="0 0 18 18"
+                                >
+                                  <path
+                                    stroke="#1890FF"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="1.2"
+                                    d="M4.5 8.25V6.75a4.5 4.5 0 119 0v1.5M4.5 8.25h9a1.5 1.5 0 011.5 1.5V15a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 013 15V9.75a1.5 1.5 0 011.5-1.5z"
+                                  />
+                                </svg>
+                              </span>
+                              {visibilityUpdatingByPost[post.id]
+                                ? "Updating visibility..."
+                                : normalizeVisibility(post.visibility) ===
+                                    "PRIVATE"
+                                  ? "Make Public"
+                                  : "Make Private"}
+                            </a>
+                          </li>
                           <li className="_feed_timeline_dropdown_item">
                             <a
                               href="#0"
