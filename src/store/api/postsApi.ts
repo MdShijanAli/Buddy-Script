@@ -46,6 +46,13 @@ export interface CreatePostRequest {
   imageFile: File;
 }
 
+export interface UpdatePostRequest {
+  postId: string;
+  content: string;
+  imageFile?: File | null;
+  removeImage?: boolean;
+}
+
 export const postsApi = createApi({
   reducerPath: "postsApi",
   baseQuery: baseQueryWithReauth,
@@ -90,6 +97,24 @@ export const postsApi = createApi({
       }),
       invalidatesTags: ["Posts", "MyPosts"],
     }),
+
+    updatePost: builder.mutation<Post, UpdatePostRequest>({
+      query: ({ postId, content, imageFile, removeImage }) => {
+        const formData = new FormData();
+        formData.append("content", content);
+        if (removeImage) {
+          formData.append("removeImage", "true");
+        } else if (imageFile) {
+          formData.append("imageUrl", imageFile);
+        }
+        return {
+          url: apiRoutes.post.update(postId),
+          method: "PUT",
+          body: formData,
+        };
+      },
+      invalidatesTags: ["Posts", "MyPosts"],
+    }),
   }),
 });
 
@@ -98,4 +123,5 @@ export const {
   useGetMyPostsQuery,
   useCreatePostMutation,
   useDeletePostMutation,
+  useUpdatePostMutation,
 } = postsApi;

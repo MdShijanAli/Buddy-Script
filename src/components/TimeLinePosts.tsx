@@ -11,6 +11,7 @@ import {
   postsApi,
   useGetAllPostsQuery,
   useDeletePostMutation,
+  useUpdatePostMutation,
   type Post,
   type PostLike,
 } from "../store/api/postsApi";
@@ -25,6 +26,7 @@ import {
 } from "../store/api/commentsApi";
 import type { RootState } from "../store/store";
 import DeletePostModal from "./timeline/DeletePostModal";
+import EditPostModal from "./timeline/EditPostModal";
 import PostCommentsSection from "./timeline/PostCommentsSection";
 import PostReactionsBar from "./timeline/PostReactionsBar";
 import { getRelativeTime } from "./timeline/utils";
@@ -46,6 +48,8 @@ export default function TimeLinePosts() {
   >({});
   const [deletePostId, setDeletePostId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editPostId, setEditPostId] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [expandedCommentsByPost, setExpandedCommentsByPost] = useState<
     Record<string, boolean>
   >({});
@@ -63,6 +67,7 @@ export default function TimeLinePosts() {
   const [getPostLikes] = useLazyGetPostLikesQuery();
   const [getPostComments] = useLazyGetPostCommentsQuery();
   const [deletePost] = useDeletePostMutation();
+  const [updatePost] = useUpdatePostMutation();
 
   const { data: posts, isLoading, isError } = useGetAllPostsQuery();
 
@@ -284,6 +289,48 @@ export default function TimeLinePosts() {
 
   const handleCancelDelete = () => {
     setDeletePostId(null);
+  };
+
+  const handleEditClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    postId: string,
+  ) => {
+    event.preventDefault();
+    setEditPostId(postId);
+    setIsEditModalOpen(true);
+    closeAllDropdowns();
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditModalOpen(false);
+    setEditPostId(null);
+  };
+
+  const handleSaveEdit = async (content: string, imageFile: File | null, removeImage: boolean = false) => {
+    if (!editPostId) return;
+
+    try {
+      await updatePost({
+        postId: editPostId,
+        content,
+        imageFile,
+        removeImage,
+      }).unwrap();
+      toast.success("Post updated successfully");
+      setIsEditModalOpen(false);
+      setEditPostId(null);
+    } catch (err: any) {
+      console.error("Failed to update post:", err);
+      toast.error(
+        err?.data?.error?.message ||
+          err?.data?.message ||
+          "Failed to update post",
+      );
+    }
+  };
+
+  const getEditingPost = () => {
+    return posts?.find((post) => post.id === editPostId) || null;
   };
 
   const loadCommentsAndReplies = async (postId: string) => {
@@ -550,69 +597,68 @@ export default function TimeLinePosts() {
                           Hide
                         </a>
                       </li>
-                      <li className="_feed_timeline_dropdown_item">
-                        <a
-                          href="#0"
-                          className="_feed_timeline_dropdown_link"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            closeAllDropdowns();
-                          }}
-                        >
-                          <span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="18"
-                              height="18"
-                              fill="none"
-                              viewBox="0 0 18 18"
-                            >
-                              <path
-                                stroke="#1890FF"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="1.2"
-                                d="M8.25 3H3a1.5 1.5 0 00-1.5 1.5V15A1.5 1.5 0 003 16.5h10.5A1.5 1.5 0 0015 15V9.75"
-                              />
-                              <path
-                                stroke="#1890FF"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="1.2"
-                                d="M13.875 1.875a1.591 1.591 0 112.25 2.25L9 11.25 6 12l.75-3 7.125-7.125z"
-                              />
-                            </svg>
-                          </span>
-                          Edit Post
-                        </a>
-                      </li>
                       {post.authorId === user?.id && (
-                        <li className="_feed_timeline_dropdown_item">
-                          <a
-                            href="#0"
-                            className="_feed_timeline_dropdown_link"
-                            onClick={(e) => handleDeleteClick(e, post.id)}
-                          >
-                            <span>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="18"
-                                height="18"
-                                fill="none"
-                                viewBox="0 0 18 18"
-                              >
-                                <path
-                                  stroke="#1890FF"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="1.2"
-                                  d="M2.25 4.5h13.5M6 4.5V3a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0112 3v1.5m2.25 0V15a1.5 1.5 0 01-1.5 1.5h-7.5a1.5 1.5 0 01-1.5-1.5V4.5h10.5zM7.5 8.25v4.5M10.5 8.25v4.5"
-                                />
-                              </svg>
-                            </span>
-                            Delete Post
-                          </a>
-                        </li>
+                        <>
+                          <li className="_feed_timeline_dropdown_item">
+                            <a
+                              href="#0"
+                              className="_feed_timeline_dropdown_link"
+                              onClick={(e) => handleEditClick(e, post.id)}
+                            >
+                              <span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="18"
+                                  height="18"
+                                  fill="none"
+                                  viewBox="0 0 18 18"
+                                >
+                                  <path
+                                    stroke="#1890FF"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="1.2"
+                                    d="M8.25 3H3a1.5 1.5 0 00-1.5 1.5V15A1.5 1.5 0 003 16.5h10.5A1.5 1.5 0 0015 15V9.75"
+                                  />
+                                  <path
+                                    stroke="#1890FF"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="1.2"
+                                    d="M13.875 1.875a1.591 1.591 0 112.25 2.25L9 11.25 6 12l.75-3 7.125-7.125z"
+                                  />
+                                </svg>
+                              </span>
+                              Edit Post
+                            </a>
+                          </li>
+                          <li className="_feed_timeline_dropdown_item">
+                            <a
+                              href="#0"
+                              className="_feed_timeline_dropdown_link"
+                              onClick={(e) => handleDeleteClick(e, post.id)}
+                            >
+                              <span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="18"
+                                  height="18"
+                                  fill="none"
+                                  viewBox="0 0 18 18"
+                                >
+                                  <path
+                                    stroke="#1890FF"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="1.2"
+                                    d="M2.25 4.5h13.5M6 4.5V3a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0112 3v1.5m2.25 0V15a1.5 1.5 0 01-1.5 1.5h-7.5a1.5 1.5 0 01-1.5-1.5V4.5h10.5zM7.5 8.25v4.5M10.5 8.25v4.5"
+                                  />
+                                </svg>
+                              </span>
+                              Delete Post
+                            </a>
+                          </li>
+                        </>
                       )}
                     </ul>
                   </div>
@@ -749,6 +795,15 @@ export default function TimeLinePosts() {
           isDeleting={isDeleting}
           onCancel={handleCancelDelete}
           onConfirm={handleConfirmDelete}
+        />
+      )}
+
+      {isEditModalOpen && editPostId && (
+        <EditPostModal
+          post={getEditingPost()}
+          isEditing={isEditModalOpen}
+          onCancel={handleCancelEdit}
+          onSave={handleSaveEdit}
         />
       )}
     </>

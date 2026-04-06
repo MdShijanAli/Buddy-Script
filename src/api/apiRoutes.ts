@@ -19,6 +19,7 @@ export const apiRoutes = {
     myPosts: createApiUrl("posts/my-posts"),
     create: createApiUrl("posts"),
     delete: (postId: string) => createApiUrl(`posts/${postId}`),
+    update: (postId: string) => createApiUrl(`posts/${postId}`),
   },
 
   like: {
