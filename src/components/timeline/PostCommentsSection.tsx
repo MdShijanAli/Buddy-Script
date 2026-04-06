@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -76,13 +77,32 @@ export default function PostCommentsSection({
   const [getCommentLikes] = useLazyGetCommentLikesQuery();
   const [getReplyLikes] = useLazyGetReplyLikesQuery();
 
-  const currentUserPreview: LikePreviewUser | null = currentUser?.id
-    ? {
-        userId: currentUser.id,
-        name: currentUser.name || currentUser.firstName || "You",
-        profile_image: currentUser.profile_image || currentUser.profileImage,
-      }
-    : null;
+  const currentUserPreview: LikePreviewUser | null = useMemo(
+    () =>
+      currentUser?.id
+        ? {
+            userId: currentUser.id,
+            name: currentUser.name || currentUser.firstName || "You",
+            profile_image:
+              currentUser.profile_image || currentUser.profileImage,
+          }
+        : null,
+    [
+      currentUser?.id,
+      currentUser?.name,
+      currentUser?.firstName,
+      currentUser?.profile_image,
+      currentUser?.profileImage,
+    ],
+  );
+
+  const normalizeLikes = (
+    payload: Like[] | { likes?: Like[] | null } | null | undefined,
+  ): Like[] => {
+    if (!payload) return [];
+    if (Array.isArray(payload)) return payload;
+    return Array.isArray(payload.likes) ? payload.likes : [];
+  };
 
   const hasPreviewUser = (
     users: LikePreviewUser[],
@@ -355,20 +375,22 @@ export default function PostCommentsSection({
         return;
       }
 
-      let likeId;
+      let likeId = current.likeId;
       if (!likeId && currentUser?.id) {
-        const likes = await getCommentLikes(comment.id).unwrap();
+        const likesResponse = await getCommentLikes(comment.id).unwrap();
+        const likes = normalizeLikes(
+          likesResponse as Like[] | { likes?: Like[] },
+        );
         console.log(
           "Fetched likes for comment to find likeId for unlike:",
-          likes,
+          likesResponse,
         );
-        likeId = likes?.find((item: Like) => item.userId === currentUser.id)
-          ?.id;
+        console.log("Current user ID:", currentUser.id);
+        likeId = likes.find((item: Like) => item.userId === currentUser.id)?.id;
+        console.log("Found likeId for unlike:", likeId);
       }
 
       console.log("Attempting to unlike comment with likeId:", likeId);
-
-      // return;
 
       if (!likeId) {
         throw new Error("Unable to find like record for unlike");
@@ -462,7 +484,10 @@ export default function PostCommentsSection({
 
       let likeId = current.likeId;
       if (!likeId && currentUser?.id) {
-        const likes = await getReplyLikes(reply.id).unwrap();
+        const likesResponse = await getReplyLikes(reply.id).unwrap();
+        const likes = normalizeLikes(
+          likesResponse as Like[] | { likes?: Like[] },
+        );
         likeId = likes.find((item) => item.userId === currentUser.id)?.id;
       }
 
