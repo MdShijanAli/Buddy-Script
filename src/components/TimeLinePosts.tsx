@@ -10,6 +10,7 @@ import { useMultipleDropdowns } from "../hooks";
 import {
   postsApi,
   useGetAllPostsQuery,
+  useGetMyPostsQuery,
   useDeletePostMutation,
   useUpdatePostMutation,
   type Post,
@@ -31,7 +32,11 @@ import PostCommentsSection from "./timeline/PostCommentsSection";
 import PostReactionsBar from "./timeline/PostReactionsBar";
 import { getRelativeTime } from "./timeline/utils";
 
-export default function TimeLinePosts() {
+interface TimeLinePostsProps {
+  variant?: "all" | "mine";
+}
+
+export default function TimeLinePosts({ variant = "all" }: TimeLinePostsProps) {
   const { toggleDropdown, isDropdownOpen, closeAllDropdowns } =
     useMultipleDropdowns();
   const [reactions, setReactions] = useState<
@@ -69,7 +74,21 @@ export default function TimeLinePosts() {
   const [deletePost] = useDeletePostMutation();
   const [updatePost] = useUpdatePostMutation();
 
-  const { data: posts, isLoading, isError } = useGetAllPostsQuery();
+  const shouldLoadMyPosts = variant === "mine";
+  const allPostsState = useGetAllPostsQuery(undefined, {
+    skip: shouldLoadMyPosts,
+  });
+  const myPostsState = useGetMyPostsQuery(undefined, {
+    skip: !shouldLoadMyPosts,
+  });
+
+  const posts = shouldLoadMyPosts ? myPostsState.data : allPostsState.data;
+  const isLoading = shouldLoadMyPosts
+    ? myPostsState.isLoading
+    : allPostsState.isLoading;
+  const isError = shouldLoadMyPosts
+    ? myPostsState.isError
+    : allPostsState.isError;
 
   const currentUserLike = useMemo<PostLike | null>(() => {
     if (!user?.id) return null;
@@ -306,7 +325,11 @@ export default function TimeLinePosts() {
     setEditPostId(null);
   };
 
-  const handleSaveEdit = async (content: string, imageFile: File | null, removeImage: boolean = false) => {
+  const handleSaveEdit = async (
+    content: string,
+    imageFile: File | null,
+    removeImage: boolean = false,
+  ) => {
     if (!editPostId) return;
 
     try {
@@ -400,7 +423,11 @@ export default function TimeLinePosts() {
     return (
       <div className="_feed_inner_timeline_post_area _b_radious6 _padd_b24 _padd_t24 _mar_b16">
         <div className="_feed_inner_timeline_content _padd_r24 _padd_l24">
-          <p>No posts available.</p>
+          <p>
+            {shouldLoadMyPosts
+              ? "You have not posted anything yet."
+              : "No posts available."}
+          </p>
         </div>
       </div>
     );

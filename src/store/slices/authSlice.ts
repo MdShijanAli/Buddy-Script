@@ -5,9 +5,14 @@ interface User {
   id: string;
   email: string;
   name?: string;
+  phone?: string;
+  bio?: string;
+  location?: string;
   avatar?: string;
   firstName: string;
+  first_name?: string;
   lastName: string;
+  last_name?: string;
   profileImage?: string;
   profile_image?: string;
 }
@@ -113,6 +118,15 @@ const authSlice = createSlice({
     setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
     },
+
+    updateUser: (state, action: PayloadAction<Partial<User>>) => {
+      if (!state.user) return;
+      state.user = {
+        ...state.user,
+        ...action.payload,
+      };
+      localStorage.setItem("user", JSON.stringify(state.user));
+    },
   },
 });
 
@@ -123,6 +137,7 @@ export const {
   logout,
   clearError,
   setError,
+  updateUser,
 } = authSlice.actions;
 
 export default authSlice.reducer;

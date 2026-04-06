@@ -12,6 +12,8 @@ export const apiRoutes = {
     registration: createApiUrl("auth/sign-up"),
     logout: createApiUrl("auth/sign-out"),
     refreshToken: createApiUrl("token/refresh"),
+    profile: createApiUrl("users/profile"),
+    profle: createApiUrl("users/profile"),
   },
 
   post: {

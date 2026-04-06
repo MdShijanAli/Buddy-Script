@@ -12,7 +12,7 @@ const PublicRoute = ({ children }: Props) => {
   );
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/feed" replace />;
   }
 
   return <>{children}</>;

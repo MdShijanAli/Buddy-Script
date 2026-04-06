@@ -5,6 +5,7 @@ import PrivateRoute from "./privetRoutes";
 import FeedPage from "../views/feed/FeedPage";
 import RegistrationPage from "../views/registration/RegistrationPage";
 import NoPageFound from "../views/NoPageFound";
+import ProfilePage from "../views/profile/ProfilePage";
 
 const AppRoutes = () => {
   return (
@@ -31,6 +32,24 @@ const AppRoutes = () => {
         element={
           <PrivateRoute>
             <FeedPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/feed"
+        element={
+          <PrivateRoute>
+            <FeedPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <PrivateRoute>
+            <ProfilePage />
           </PrivateRoute>
         }
       />

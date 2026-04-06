@@ -6,10 +6,15 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  phone?: string;
+  bio?: string;
+  location?: string;
   profile_image?: string;
   profileImage?: string;
   firstName?: string;
+  first_name?: string;
   lastName?: string;
+  last_name?: string;
 }
 
 export interface LoginRequest {
@@ -35,6 +40,20 @@ export interface AuthResponse {
     refreshToken?: string;
   };
   user?: User;
+}
+
+export interface ProfileUpdateRequest {
+  name: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  bio: string;
+  location: string;
+}
+
+export interface ProfileResponse {
+  user?: User;
+  data?: User;
 }
 
 export const authApi = createApi({
@@ -74,6 +93,21 @@ export const authApi = createApi({
         body,
       }),
     }),
+
+    getProfile: builder.query<ProfileResponse, void>({
+      query: () => ({
+        url: apiRoutes.auth.profile,
+        method: "GET",
+      }),
+    }),
+
+    updateProfile: builder.mutation<ProfileResponse, ProfileUpdateRequest>({
+      query: (body) => ({
+        url: apiRoutes.auth.profile,
+        method: "PUT",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -82,4 +116,6 @@ export const {
   useRegisterMutation,
   useLogoutMutation,
   useRefreshTokenMutation,
+  useGetProfileQuery,
+  useUpdateProfileMutation,
 } = authApi;
