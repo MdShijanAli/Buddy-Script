@@ -13,6 +13,7 @@ import { useCreateReplyMutation } from "../../store/api/repliesApi";
 import {
   useLazyGetCommentLikesQuery,
   useLazyGetReplyLikesQuery,
+  type Like,
   useLikeCommentMutation,
   useLikeReplyMutation,
   useUnlikePostMutation,
@@ -361,9 +362,8 @@ export default function PostCommentsSection({
           "Fetched likes for comment to find likeId for unlike:",
           likes,
         );
-        likeId = likes?.likes?.find(
-          (item) => item.userId === currentUser.id,
-        )?.id;
+        likeId = likes?.find((item: Like) => item.userId === currentUser.id)
+          ?.id;
       }
 
       console.log("Attempting to unlike comment with likeId:", likeId);

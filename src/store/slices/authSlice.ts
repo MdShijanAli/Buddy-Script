@@ -9,9 +9,9 @@ interface User {
   bio?: string;
   location?: string;
   avatar?: string;
-  firstName: string;
+  firstName?: string;
   first_name?: string;
-  lastName: string;
+  lastName?: string;
   last_name?: string;
   profileImage?: string;
   profile_image?: string;

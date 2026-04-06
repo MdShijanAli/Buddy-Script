@@ -1,7 +1,9 @@
 import { useState, useCallback } from "react";
 
 export const useMultipleDropdowns = (initialDropdowns: string[] = []) => {
-  const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
+  const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(
+    () => new Set(initialDropdowns),
+  );
 
   const toggleDropdown = useCallback((id: string) => {
     setOpenDropdowns((prev) => {

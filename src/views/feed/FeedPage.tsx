@@ -1,32 +1,11 @@
 import { useDarkMode } from "../../hooks";
-import { useDispatch } from "react-redux";
-import type { AppDispatch } from "../../store/store";
-import { logout } from "../../store/slices/authSlice";
-import { useLogoutMutation } from "../../store/api/authApi";
 import Header from "../../components/Header";
 import LeftSidebar from "../../components/LeftSidebar";
 import FeedMiddle from "../../components/FeedMiddle";
 import RightSidebar from "../../components/RightSidebar";
-import { useNavigate } from "react-router-dom";
 
 export default function FeedPage() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  const [logoutUser] = useLogoutMutation();
-
-  const handleLogout = async () => {
-    try {
-      await logoutUser().unwrap();
-      dispatch(logout());
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Still logout locally even if API call fails
-      dispatch(logout());
-      navigate("/login");
-    }
-  };
 
   return (
     <div

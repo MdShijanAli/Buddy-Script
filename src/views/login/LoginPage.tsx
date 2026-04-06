@@ -33,8 +33,8 @@ export default function LoginPage() {
 
     try {
       const response = await login({
-        email: values.email,
-        password: values.password,
+        email: values.email as string,
+        password: values.password as string,
       }).unwrap();
 
       if (response.user) {

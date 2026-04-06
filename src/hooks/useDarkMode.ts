@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 
 export const useDarkMode = () => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     // Check localStorage for saved preference
     const saved = localStorage.getItem("darkMode");
-    return saved ? JSON.parse(saved) : false;
+    return saved ? Boolean(JSON.parse(saved)) : false;
   });
 
   // Persist dark mode preference to localStorage
