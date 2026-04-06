@@ -34,6 +34,11 @@
   padding-left: 20px;
 }
 
+.profile_avatar_stack {
+  position: relative;
+  width: fit-content;
+}
+
 .profile_avatar,
 .profile_avatar_placeholder {
   width: 84px;
@@ -51,6 +56,25 @@
   justify-content: center;
   font-size: 28px;
   font-weight: 700;
+}
+
+.profile_avatar_edit_btn {
+  position: absolute;
+  right: -8px;
+  bottom: 6px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f7df0, #21a7ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(15, 125, 240, 0.35);
+}
+
+.profile_avatar_edit_btn:hover {
+  transform: translateY(-1px);
 }
 
 .profile_identity {

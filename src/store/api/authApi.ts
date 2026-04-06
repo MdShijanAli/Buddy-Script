@@ -49,6 +49,7 @@ export interface ProfileUpdateRequest {
   phone: string;
   bio: string;
   location: string;
+  profileImageFile?: File | null;
 }
 
 export interface ProfileResponse {
@@ -59,6 +60,7 @@ export interface ProfileResponse {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithReauth,
+  tagTypes: ["Profile"],
   endpoints: (builder) => ({
     login: builder.mutation<AuthResponse, LoginRequest>({
       query: (credentials) => ({
@@ -99,14 +101,35 @@ export const authApi = createApi({
         url: apiRoutes.auth.profile,
         method: "GET",
       }),
+      providesTags: ["Profile"],
     }),
 
     updateProfile: builder.mutation<ProfileResponse, ProfileUpdateRequest>({
-      query: (body) => ({
-        url: apiRoutes.auth.profile,
-        method: "PUT",
-        body,
-      }),
+      query: ({ profileImageFile, ...body }) => {
+        if (profileImageFile) {
+          const formData = new FormData();
+          formData.append("name", body.name);
+          formData.append("first_name", body.first_name);
+          formData.append("last_name", body.last_name);
+          formData.append("phone", body.phone);
+          formData.append("bio", body.bio);
+          formData.append("location", body.location);
+          formData.append("profile_image", profileImageFile);
+
+          return {
+            url: apiRoutes.auth.profile,
+            method: "PUT",
+            body: formData,
+          };
+        }
+
+        return {
+          url: apiRoutes.auth.profile,
+          method: "PUT",
+          body,
+        };
+      },
+      invalidatesTags: ["Profile"],
     }),
   }),
 });

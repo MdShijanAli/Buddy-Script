@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Header from "../../components/Header";
@@ -8,6 +8,7 @@ import {
   useGetProfileQuery,
   useUpdateProfileMutation,
 } from "../../store/api/authApi";
+import { postsApi } from "../../store/api/postsApi";
 import { updateUser } from "../../store/slices/authSlice";
 import type { RootState } from "../../store/store";
 import "./profile.css";
@@ -36,6 +37,12 @@ export default function ProfilePage() {
   const [showPosts, setShowPosts] = useState(true);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [formState, setFormState] = useState<ProfileFormState>(emptyProfile);
+  const [selectedProfileImage, setSelectedProfileImage] = useState<File | null>(
+    null,
+  );
+  const [selectedProfileImagePreview, setSelectedProfileImagePreview] =
+    useState<string | null>(null);
+  const profileImageInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profileData, isFetching } = useGetProfileQuery();
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
@@ -55,7 +62,10 @@ export default function ProfilePage() {
     "User";
 
   const profileImage =
-    profileUser?.profile_image || profileUser?.profileImage || null;
+    selectedProfileImagePreview ||
+    profileUser?.profile_image ||
+    profileUser?.profileImage ||
+    null;
 
   useEffect(() => {
     if (!profileUser) return;
@@ -98,25 +108,39 @@ export default function ProfilePage() {
         phone: formState.phone.trim(),
         bio: formState.bio.trim(),
         location: formState.location.trim(),
+        profileImageFile: selectedProfileImage,
       };
 
       const response = await updateProfile(payload).unwrap();
-      const updated = response?.user || response?.data || payload;
+      const updated = response?.user || response?.data;
 
       dispatch(
         updateUser({
-          name: updated.name,
+          name: updated?.name || payload.name,
           firstName: payload.first_name,
           lastName: payload.last_name,
-          first_name: updated.first_name || payload.first_name,
-          last_name: updated.last_name || payload.last_name,
-          phone: updated.phone || payload.phone,
-          bio: updated.bio || payload.bio,
-          location: updated.location || payload.location,
+          first_name: updated?.first_name || payload.first_name,
+          last_name: updated?.last_name || payload.last_name,
+          phone: updated?.phone || payload.phone,
+          bio: updated?.bio || payload.bio,
+          location: updated?.location || payload.location,
+          profileImage:
+            updated?.profileImage ||
+            updated?.profile_image ||
+            selectedProfileImagePreview ||
+            undefined,
+          profile_image:
+            updated?.profile_image ||
+            updated?.profileImage ||
+            selectedProfileImagePreview ||
+            undefined,
         }),
       );
+      dispatch(postsApi.util.invalidateTags(["Posts", "MyPosts"]));
 
       toast.success("Profile updated successfully.");
+      setSelectedProfileImage(null);
+      setSelectedProfileImagePreview(null);
       setIsEditingProfile(false);
     } catch (error: any) {
       const message =
@@ -138,7 +162,36 @@ export default function ProfilePage() {
         location: profileUser.location || "",
       });
     }
+    setSelectedProfileImage(null);
+    setSelectedProfileImagePreview(null);
     setIsEditingProfile(false);
+  };
+
+  const handleAvatarEditClick = () => {
+    setIsEditingProfile(true);
+  };
+
+  const handleProfileImagePick = () => {
+    profileImageInputRef.current?.click();
+  };
+
+  const handleProfileImageChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file.");
+      return;
+    }
+
+    setSelectedProfileImage(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSelectedProfileImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -149,18 +202,46 @@ export default function ProfilePage() {
         <div className="profile_grid">
           <aside className="profile_sidebar_card">
             <div className="profile_cover" />
+            <input
+              ref={profileImageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleProfileImageChange}
+              style={{ display: "none" }}
+            />
             <div className="profile_avatar_wrap">
-              {profileImage ? (
-                <img
-                  src={profileImage}
-                  alt={profileName}
-                  className="profile_avatar"
-                />
-              ) : (
-                <div className="profile_avatar_placeholder">
-                  {profileName.charAt(0).toUpperCase()}
-                </div>
-              )}
+              <div className="profile_avatar_stack">
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt={profileName}
+                    className="profile_avatar"
+                  />
+                ) : (
+                  <div className="profile_avatar_placeholder">
+                    {profileName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="profile_avatar_edit_btn"
+                  onClick={handleAvatarEditClick}
+                  title="Edit profile"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                  >
+                    <path
+                      fill="#fff"
+                      d="M10.5.875a1.5 1.5 0 012.121 2.121L5.06 10.56 2.1 11.9l1.34-2.96L10.5.875zm-7.164 8.026l-.49 1.083 1.083-.49 6.96-6.96-.592-.592-6.96 6.96z"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <div className="profile_identity">
@@ -181,31 +262,50 @@ export default function ProfilePage() {
           </aside>
 
           <section className="profile_content_area">
-            <div className="profile_editor_card">
-              <div className="profile_editor_header">
-                <h3>Profile Details</h3>
-                <div className="profile_editor_actions">
-                  {!isEditingProfile && (
+            {isEditingProfile && (
+              <div className="profile_editor_card">
+                <div className="profile_editor_header">
+                  <h3>Profile Details</h3>
+                  <div className="profile_editor_actions">
                     <button
                       type="button"
-                      className="profile_edit_btn"
-                      onClick={() => setIsEditingProfile(true)}
+                      className="profile_posts_toggle"
+                      onClick={() => setShowPosts((prev) => !prev)}
                     >
-                      Edit Profile
+                      {showPosts ? "Hide Posts" : "Show My Posts"}
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    className="profile_posts_toggle"
-                    onClick={() => setShowPosts((prev) => !prev)}
-                  >
-                    {showPosts ? "Hide Posts" : "Show My Posts"}
-                  </button>
+                  </div>
                 </div>
-              </div>
 
-              {isEditingProfile ? (
                 <form className="profile_form" onSubmit={handleProfileUpdate}>
+                  <div className="profile_form_row">
+                    <label>Profile Photo</label>
+                    <div
+                      className="profile_form_action"
+                      style={{ justifyContent: "flex-start" }}
+                    >
+                      <button
+                        type="button"
+                        className="profile_cancel_btn"
+                        onClick={handleProfileImagePick}
+                        disabled={isUpdating || isFetching}
+                      >
+                        Upload Photo
+                      </button>
+                      {selectedProfileImage && (
+                        <span
+                          style={{
+                            alignSelf: "center",
+                            color: "#4d607d",
+                            fontSize: "13px",
+                          }}
+                        >
+                          {selectedProfileImage.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="profile_form_row">
                     <label htmlFor="name">Full Name</label>
                     <input
@@ -295,35 +395,8 @@ export default function ProfilePage() {
                     </button>
                   </div>
                 </form>
-              ) : (
-                <div className="profile_readonly">
-                  <div className="profile_readonly_row">
-                    <span>Full Name</span>
-                    <strong>{formState.name || "Not added"}</strong>
-                  </div>
-                  <div className="profile_readonly_row">
-                    <span>First Name</span>
-                    <strong>{formState.first_name || "Not added"}</strong>
-                  </div>
-                  <div className="profile_readonly_row">
-                    <span>Last Name</span>
-                    <strong>{formState.last_name || "Not added"}</strong>
-                  </div>
-                  <div className="profile_readonly_row">
-                    <span>Phone</span>
-                    <strong>{formState.phone || "Not added"}</strong>
-                  </div>
-                  <div className="profile_readonly_row">
-                    <span>Location</span>
-                    <strong>{formState.location || "Not added"}</strong>
-                  </div>
-                  <div className="profile_readonly_row profile_readonly_bio">
-                    <span>Bio</span>
-                    <strong>{formState.bio || "Not added"}</strong>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {showPosts && (
               <>
