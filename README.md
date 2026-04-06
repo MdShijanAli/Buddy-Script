@@ -1,73 +1,161 @@
-# React + TypeScript + Vite
+# Appifylab Full Stack Engineer Task
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A social feed web application built with React, TypeScript, Vite, Redux Toolkit, and RTK Query.
 
-Currently, two official plugins are available:
+This project includes authentication, feed timeline, profile management, comments/reactions, image uploads, and post privacy controls.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Live Features Implemented
 
-## React Compiler
+### Authentication
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- User login
+- User registration
+- Token refresh flow
+- Protected routes (`/`, `/feed`, `/profile`)
+- Logout flow with state cleanup
 
-## Expanding the ESLint configuration
+### Feed and Posts
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Create post with image upload
+- Edit post content/image
+- Delete post
+- Like and unlike post with optimistic UI
+- Comments section loading and creation support
+- Owner dropdown actions
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Post Visibility (Public/Private)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Posts support `PUBLIC` and `PRIVATE` visibility
+- Post owner can toggle visibility from post dropdown:
+  - `Make Private`
+  - `Make Public`
+- Public feed hides private posts for other users
+- Owner can still see own private posts
+- My Posts page shows all owner posts
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Profile
+
+- Dedicated profile page (`/profile`)
+- Fetch profile data from API
+- Update profile fields:
+  - `name`
+  - `first_name`
+  - `last_name`
+  - `phone`
+  - `bio`
+  - `location`
+- Profile image upload support
+- Edit mode is opened from avatar edit icon
+- Profile form hidden by default until edit icon is clicked
+
+### Data Refresh and Cache Handling
+
+- Profile update invalidates profile query and refetches
+- Profile update also invalidates posts and my posts queries
+- Profile page refetches on mount/focus/reconnect
+- Stale profile data guard for user switching (prevents showing cached data from previous user)
+
+## Tech Stack
+
+- React 19
+- TypeScript
+- Vite
+- Redux Toolkit
+- RTK Query
+- React Router DOM
+- React Toastify
+- Bootstrap 5
+
+## Project Structure (High Level)
+
+```text
+src/
+  api/                 # API route definitions
+  components/          # Reusable UI components
+  hooks/               # Custom hooks
+  routes/              # Public/private route handling
+  store/
+    api/               # RTK Query APIs (auth, posts, comments, likes, replies)
+    slices/            # Redux slices
+  views/
+    feed/              # Feed page
+    login/             # Login page
+    registration/      # Registration page
+    profile/           # Profile page
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## API Base URL Configuration
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The app reads backend base URL from environment variable:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_API_BASE_URL=http://localhost:5050/api
 ```
+
+If not provided, the default fallback is:
+
+```text
+http://localhost:5050/api
+```
+
+## Installation and Run
+
+### 1) Install dependencies
+
+```bash
+npm install
+```
+
+### 2) Start development server
+
+```bash
+npm run dev
+```
+
+### 3) Build for production
+
+```bash
+npm run build
+```
+
+### 4) Preview production build
+
+```bash
+npm run preview
+```
+
+### 5) Run lint
+
+```bash
+npm run lint
+```
+
+## Available Scripts
+
+- `npm run dev` - Start Vite dev server
+- `npm run build` - Type-check and build
+- `npm run preview` - Preview built app
+- `npm run lint` - Run ESLint
+
+## Routing
+
+- Public:
+  - `/login`
+  - `/registration`
+- Private:
+  - `/`
+  - `/feed`
+  - `/profile`
+
+## Notes for Reviewers
+
+- The project uses RTK Query cache invalidation for profile and posts synchronization.
+- Post visibility logic is enforced in the UI layer for feed rendering.
+- Profile page includes protection against stale cached profile mismatch after account switch.
+
+## Future Improvements
+
+- Add unit/integration tests
+- Add role-based authorization checks at API response level
+- Add pagination/infinite scroll for feed
+- Add stronger form validation and field-level error messages
