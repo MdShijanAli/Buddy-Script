@@ -89,8 +89,8 @@ export default function RegistrationPage() {
       console.error("Registration error:", err);
       toast.error(
         err?.data?.error?.message ||
-          err.message ||
-          "Registration failed. Please try again.",
+        err.message ||
+        "Registration failed. Please try again.",
       );
     }
   };
@@ -277,7 +277,7 @@ export default function RegistrationPage() {
                       <div className="_social_registration_form_btn _mar_t40 _mar_b60">
                         <button
                           type="submit"
-                          className="_social_registration_form_btn_link _btn1"
+                          className="_btn1"
                           disabled={isLoading}
                         >
                           {isLoading ? "Registering..." : "Register now"}
